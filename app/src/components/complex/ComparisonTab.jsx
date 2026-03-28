@@ -272,7 +272,13 @@ function ScatterChartWithZoom({ data }) {
   );
 }
 
-export function ComparisonTab({ comparison, activePocketIdx, handleHighlight }) {
+export function ComparisonTab({ 
+  comparison, 
+  activePocketIdx, 
+  handleHighlight, 
+  proteinPdbId, 
+  onConformationChange 
+}) {
   if (!comparison) return (
     <div className="flex justify-center items-center py-12">
       <span className="font-mono text-sm text-text-muted">Comparison data not available.</span>
@@ -431,6 +437,10 @@ export function ComparisonTab({ comparison, activePocketIdx, handleHighlight }) 
                     onHighlight={(residueIndices) =>
                       handleHighlight(residueIndices, `int-${idx}`, comparisonHighlightTarget(pocket))
                     }
+                    proteinPdbId={proteinPdbId}
+                    onConformationChange={(confs, mode) =>
+                      onConformationChange?.(confs, mode, comparisonHighlightTarget(pocket))
+                    }
                   />
                 ))
               ) : (
@@ -481,6 +491,10 @@ export function ComparisonTab({ comparison, activePocketIdx, handleHighlight }) 
                     onHighlight={(residueIndices) =>
                       handleHighlight(residueIndices, `con-${idx}`, comparisonHighlightTarget(pocket))
                     }
+                    proteinPdbId={proteinPdbId}
+                    onConformationChange={(confs, mode) =>
+                      onConformationChange?.(confs, mode, comparisonHighlightTarget(pocket))
+                    }
                   />
                 ))
               ) : (
@@ -530,6 +544,10 @@ export function ComparisonTab({ comparison, activePocketIdx, handleHighlight }) 
                     isActive={activePocketIdx === `emg-${idx}`}
                     onHighlight={(residueIndices) =>
                       handleHighlight(residueIndices, `emg-${idx}`, comparisonHighlightTarget(pocket))
+                    }
+                    proteinPdbId={proteinPdbId}
+                    onConformationChange={(confs, mode) =>
+                      onConformationChange?.(confs, mode, comparisonHighlightTarget(pocket))
                     }
                   />
                 ))

@@ -167,6 +167,8 @@ export function BindingSitesPanel({ complexId, onHighlightPocket, onClearHighlig
           comparison={comparison}
           activePocketIdx={activePocketIdx}
           handleHighlight={handleHighlight}
+          proteinPdbId={proteinPdbId}
+          onConformationChange={onConformationChange}
         />
       ) : (
         <>
@@ -196,7 +198,7 @@ export function BindingSitesPanel({ complexId, onHighlightPocket, onClearHighlig
                       isActive={activePocketIdx === idx}
                       onHighlight={(residueIndices) => handleHighlight(residueIndices, idx)}
                       proteinPdbId={proteinPdbId}
-                      onConformationChange={onConformationChange}
+                      onConformationChange={(confs, mode) => onConformationChange?.(confs, mode, activeTab)}
                     />
                   ))
                 ) : (
