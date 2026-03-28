@@ -53,15 +53,7 @@ func BindingSiteHandler(ctx *gofr.Context) (interface{}, error) {
 		return nil, fmt.Errorf("binding sites: failed to fetch complex data: %w", err)
 	}
 
-	if afData.ComplexEntryID == "" || afData.ComplexCifURL == "" {
-		return &models.BindingSiteResult{
-			UniprotID:      uniprotID,
-			ComplexEntryID: "",
-			TotalPockets:   0,
-			InterfaceCount: 0,
-			Pockets:        []models.Pocket{},
-		}, nil
-	}
+
 
 	// Step 2: Run fpocket concurrently on both structures
 	var wg sync.WaitGroup
