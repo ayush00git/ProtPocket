@@ -20,14 +20,15 @@ export function BindingSitesPanel({ complexId, onHighlightPocket, onClearHighlig
     showAll
   );
 
-  const handleHighlight = (residueIndices, pocketIdx) => {
+  const handleHighlight = (residueIndices, pocketIdx, targetOverride) => {
+    const target = targetOverride || activeTab;
     if (activePocketIdx === pocketIdx) {
       // Toggle off
       setActivePocketIdx(null);
-      onClearHighlight?.(activeTab);
+      onClearHighlight?.(target);
     } else {
       setActivePocketIdx(pocketIdx);
-      onHighlightPocket?.(residueIndices, activeTab);
+      onHighlightPocket?.(residueIndices, target);
     }
   };
 
