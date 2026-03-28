@@ -1,0 +1,683 @@
+[
+  {
+    "alphafold_id": "AF-P04637-F1",
+    "uniprot_id": "P04637",
+    "protein_name": "Cellular tumor antigen p53",
+    "gene_name": "TP53",
+    "organism": "Homo sapiens",
+    "organism_id": 9606,
+    "is_who_pathogen": false,
+    "disease_associations": [
+      "Cancer",
+      "Li-Fraumeni syndrome"
+    ],
+    "monomer_plddt_avg": 62.4,
+    "dimer_plddt_avg": 88.5,
+    "disorder_delta": 26.1,
+    "drug_count": 5,
+    "known_drug_names": [
+      "Adavosertib",
+      "Eprenetapopt"
+    ],
+    "gap_score": 0.851,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-P04637-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "human_disease",
+    "demo_highlight": true
+  },
+  {
+    "alphafold_id": "AF-P38398-F1",
+    "uniprot_id": "P38398",
+    "protein_name": "Breast cancer type 1 susceptibility protein",
+    "gene_name": "BRCA1",
+    "organism": "Homo sapiens",
+    "organism_id": 9606,
+    "is_who_pathogen": false,
+    "disease_associations": [
+      "Breast cancer"
+    ],
+    "monomer_plddt_avg": 51.2,
+    "dimer_plddt_avg": 72.1,
+    "disorder_delta": 20.9,
+    "drug_count": 0,
+    "known_drug_names": [],
+    "gap_score": 0.93,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-P38398-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "human_disease",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-P00533-F1",
+    "uniprot_id": "P00533",
+    "protein_name": "Epidermal growth factor receptor",
+    "gene_name": "EGFR",
+    "organism": "Homo sapiens",
+    "organism_id": 9606,
+    "is_who_pathogen": false,
+    "disease_associations": [
+      "Lung cancer"
+    ],
+    "monomer_plddt_avg": 88.2,
+    "dimer_plddt_avg": 92.5,
+    "disorder_delta": 4.3,
+    "drug_count": 15,
+    "known_drug_names": [
+      "Erlotinib",
+      "Gefitinib",
+      "Osimertinib"
+    ],
+    "gap_score": 0.043,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-P00533-F1-model_v6.cif",
+    "complex_structure_url": "https://alphafold.ebi.ac.uk/files/AF-0000000066583957-model_v1.cif",
+    "category": "human_disease",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-P10415-F1",
+    "uniprot_id": "P10415",
+    "protein_name": "Apoptosis regulator Bcl-2",
+    "gene_name": "BCL2",
+    "organism": "Homo sapiens",
+    "organism_id": 9606,
+    "is_who_pathogen": false,
+    "disease_associations": [
+      "Lymphoma"
+    ],
+    "monomer_plddt_avg": 81.3,
+    "dimer_plddt_avg": 85.0,
+    "disorder_delta": 3.7,
+    "drug_count": 3,
+    "known_drug_names": [
+      "Venetoclax"
+    ],
+    "gap_score": 0.717,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-P10415-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "human_disease",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-P40763-F1",
+    "uniprot_id": "P40763",
+    "protein_name": "Signal transducer and activator of transcription 3",
+    "gene_name": "STAT3",
+    "organism": "Homo sapiens",
+    "organism_id": 9606,
+    "is_who_pathogen": false,
+    "disease_associations": [
+      "Autoimmune disease",
+      "Cancer"
+    ],
+    "monomer_plddt_avg": 75.1,
+    "dimer_plddt_avg": 89.2,
+    "disorder_delta": 14.1,
+    "drug_count": 0,
+    "known_drug_names": [],
+    "gap_score": 1.033,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-P40763-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "human_disease",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-P06400-F1",
+    "uniprot_id": "P06400",
+    "protein_name": "Retinoblastoma-associated protein",
+    "gene_name": "RB1",
+    "organism": "Homo sapiens",
+    "organism_id": 9606,
+    "is_who_pathogen": false,
+    "disease_associations": [
+      "Retinoblastoma"
+    ],
+    "monomer_plddt_avg": 60.5,
+    "dimer_plddt_avg": 78.4,
+    "disorder_delta": 17.9,
+    "drug_count": 0,
+    "known_drug_names": [],
+    "gap_score": 0.963,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-P06400-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "human_disease",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-P04626-F1",
+    "uniprot_id": "P04626",
+    "protein_name": "Receptor tyrosine-protein kinase erbB-2",
+    "gene_name": "ERBB2",
+    "organism": "Homo sapiens",
+    "organism_id": 9606,
+    "is_who_pathogen": false,
+    "disease_associations": [
+      "Breast cancer"
+    ],
+    "monomer_plddt_avg": 85.4,
+    "dimer_plddt_avg": 91.0,
+    "disorder_delta": 5.6,
+    "drug_count": 8,
+    "known_drug_names": [
+      "Trastuzumab",
+      "Lapatinib"
+    ],
+    "gap_score": 0.4807,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-P04626-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "human_disease",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-Q04206-F1",
+    "uniprot_id": "Q04206",
+    "protein_name": "Transcription factor p65",
+    "gene_name": "RELA",
+    "organism": "Homo sapiens",
+    "organism_id": 9606,
+    "is_who_pathogen": false,
+    "disease_associations": [
+      "Inflammatory bowel disease"
+    ],
+    "monomer_plddt_avg": 55.6,
+    "dimer_plddt_avg": 82.1,
+    "disorder_delta": 26.5,
+    "drug_count": 0,
+    "known_drug_names": [],
+    "gap_score": 1.086,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-Q04206-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "human_disease",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-P12830-F1",
+    "uniprot_id": "P12830",
+    "protein_name": "Cadherin-1",
+    "gene_name": "CDH1",
+    "organism": "Homo sapiens",
+    "organism_id": 9606,
+    "is_who_pathogen": false,
+    "disease_associations": [
+      "Gastric cancer"
+    ],
+    "monomer_plddt_avg": 78.9,
+    "dimer_plddt_avg": 88.5,
+    "disorder_delta": 9.6,
+    "drug_count": 0,
+    "known_drug_names": [],
+    "gap_score": 0.981,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-P12830-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "human_disease",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-P01106-F1",
+    "uniprot_id": "P01106",
+    "protein_name": "Myc proto-oncogene protein",
+    "gene_name": "MYC",
+    "organism": "Homo sapiens",
+    "organism_id": 9606,
+    "is_who_pathogen": false,
+    "disease_associations": [
+      "Burkitt lymphoma"
+    ],
+    "monomer_plddt_avg": 45.2,
+    "dimer_plddt_avg": 70.0,
+    "disorder_delta": 24.8,
+    "drug_count": 0,
+    "known_drug_names": [],
+    "gap_score": 0.948,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-P01106-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "human_disease",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-P9WNK5-F1",
+    "uniprot_id": "P9WNK5",
+    "protein_name": "Cell division protein FtsZ",
+    "gene_name": "ftsZ",
+    "organism": "Mycobacterium tuberculosis",
+    "organism_id": 83332,
+    "is_who_pathogen": true,
+    "disease_associations": [
+      "Tuberculosis"
+    ],
+    "monomer_plddt_avg": 82.4,
+    "dimer_plddt_avg": 90.1,
+    "disorder_delta": 7.7,
+    "drug_count": 0,
+    "known_drug_names": [],
+    "gap_score": 1.879,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-P9WNK5-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "who_pathogen",
+    "demo_highlight": true
+  },
+  {
+    "alphafold_id": "AF-P0A5I4-F1",
+    "uniprot_id": "P0A5I4",
+    "protein_name": "DNA gyrase subunit A",
+    "gene_name": "gyrA",
+    "organism": "Mycobacterium tuberculosis",
+    "organism_id": 83332,
+    "is_who_pathogen": true,
+    "disease_associations": [
+      "Tuberculosis"
+    ],
+    "monomer_plddt_avg": 88.5,
+    "dimer_plddt_avg": 95.2,
+    "disorder_delta": 6.7,
+    "drug_count": 2,
+    "known_drug_names": [
+      "Moxifloxacin",
+      "Levofloxacin"
+    ],
+    "gap_score": 1.7171,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-P0A5I4-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "who_pathogen",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-P0C1P7-F1",
+    "uniprot_id": "P0C1P7",
+    "protein_name": "UDP-N-acetylglucosamine 1-carboxyvinyltransferase",
+    "gene_name": "murA",
+    "organism": "Mycobacterium tuberculosis",
+    "organism_id": 83332,
+    "is_who_pathogen": true,
+    "disease_associations": [
+      "Tuberculosis"
+    ],
+    "monomer_plddt_avg": 86.1,
+    "dimer_plddt_avg": 91.0,
+    "disorder_delta": 4.9,
+    "drug_count": 0,
+    "known_drug_names": [],
+    "gap_score": 1.869,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-P0C1P7-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "who_pathogen",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-B2VD03-F1",
+    "uniprot_id": "B2VD03",
+    "protein_name": "DNA gyrase subunit A",
+    "gene_name": "gyrA",
+    "organism": "Klebsiella pneumoniae",
+    "organism_id": 573,
+    "is_who_pathogen": true,
+    "disease_associations": [
+      "Pneumonia"
+    ],
+    "monomer_plddt_avg": 90.2,
+    "dimer_plddt_avg": 94.5,
+    "disorder_delta": 4.3,
+    "drug_count": 3,
+    "known_drug_names": [
+      "Ciprofloxacin"
+    ],
+    "gap_score": 1.555,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-B2VD03-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "who_pathogen",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-A6TFF9-F1",
+    "uniprot_id": "A6TFF9",
+    "protein_name": "UDP-N-acetylglucosamine 1-carboxyvinyltransferase",
+    "gene_name": "murA",
+    "organism": "Klebsiella pneumoniae",
+    "organism_id": 573,
+    "is_who_pathogen": true,
+    "disease_associations": [
+      "Pneumonia"
+    ],
+    "monomer_plddt_avg": 85.4,
+    "dimer_plddt_avg": 90.0,
+    "disorder_delta": 4.6,
+    "drug_count": 1,
+    "known_drug_names": [
+      "Fosfomycin"
+    ],
+    "gap_score": 1.726,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-A6TFF9-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "who_pathogen",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-V5VC87-F1",
+    "uniprot_id": "V5VC87",
+    "protein_name": "Cell division protein FtsZ",
+    "gene_name": "ftsZ",
+    "organism": "Acinetobacter baumannii",
+    "organism_id": 470,
+    "is_who_pathogen": true,
+    "disease_associations": [
+      "Nosocomial infection"
+    ],
+    "monomer_plddt_avg": 81.2,
+    "dimer_plddt_avg": 88.4,
+    "disorder_delta": 7.2,
+    "drug_count": 0,
+    "known_drug_names": [],
+    "gap_score": 1.84,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-V5VC87-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "who_pathogen",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-Q9I1R3-F1",
+    "uniprot_id": "Q9I1R3",
+    "protein_name": "DNA gyrase subunit B",
+    "gene_name": "gyrB",
+    "organism": "Pseudomonas aeruginosa",
+    "organism_id": 287,
+    "is_who_pathogen": true,
+    "disease_associations": [
+      "Opportunistic infection"
+    ],
+    "monomer_plddt_avg": 89.1,
+    "dimer_plddt_avg": 93.2,
+    "disorder_delta": 4.1,
+    "drug_count": 2,
+    "known_drug_names": [
+      "Novobiocin"
+    ],
+    "gap_score": 1.6565,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-Q9I1R3-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "who_pathogen",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-Q9HW76-F1",
+    "uniprot_id": "Q9HW76",
+    "protein_name": "UDP-N-acetylmuramate--L-alanine ligase",
+    "gene_name": "murC",
+    "organism": "Pseudomonas aeruginosa",
+    "organism_id": 287,
+    "is_who_pathogen": true,
+    "disease_associations": [
+      "Opportunistic infection"
+    ],
+    "monomer_plddt_avg": 84.5,
+    "dimer_plddt_avg": 90.1,
+    "disorder_delta": 5.6,
+    "drug_count": 0,
+    "known_drug_names": [],
+    "gap_score": 1.858,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-Q9HW76-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "who_pathogen",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-P0A0B0-F1",
+    "uniprot_id": "P0A0B0",
+    "protein_name": "Cell division protein FtsZ",
+    "gene_name": "ftsZ",
+    "organism": "Staphylococcus aureus",
+    "organism_id": 1280,
+    "is_who_pathogen": true,
+    "disease_associations": [
+      "MRSA infection"
+    ],
+    "monomer_plddt_avg": 83.2,
+    "dimer_plddt_avg": 89.5,
+    "disorder_delta": 6.3,
+    "drug_count": 0,
+    "known_drug_names": [],
+    "gap_score": 1.853,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-P0A0B0-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "who_pathogen",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-Q2FXG1-F1",
+    "uniprot_id": "Q2FXG1",
+    "protein_name": "UDP-N-acetylmuramate--L-alanine ligase",
+    "gene_name": "murC",
+    "organism": "Staphylococcus aureus",
+    "organism_id": 1280,
+    "is_who_pathogen": true,
+    "disease_associations": [
+      "MRSA infection"
+    ],
+    "monomer_plddt_avg": 85.6,
+    "dimer_plddt_avg": 91.2,
+    "disorder_delta": 5.6,
+    "drug_count": 0,
+    "known_drug_names": [],
+    "gap_score": 1.88,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-Q2FXG1-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "who_pathogen",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-Q55DI5-F1",
+    "uniprot_id": "Q55DI5",
+    "protein_name": "Uncharacterized protein",
+    "gene_name": "None",
+    "organism": "Dictyostelium discoideum",
+    "organism_id": 44689,
+    "is_who_pathogen": false,
+    "disease_associations": [],
+    "monomer_plddt_avg": 42.1,
+    "dimer_plddt_avg": 85.4,
+    "disorder_delta": 43.3,
+    "drug_count": -1,
+    "known_drug_names": [],
+    "gap_score": 0.86,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-Q55DI5-F1-model_v6.cif",
+    "complex_structure_url": "https://alphafold.ebi.ac.uk/files/AF-0000000066503175-model_v1.cif",
+    "category": "high_disorder_delta",
+    "demo_highlight": true
+  },
+  {
+    "alphafold_id": "AF-P37840-F1",
+    "uniprot_id": "P37840",
+    "protein_name": "Alpha-synuclein",
+    "gene_name": "SNCA",
+    "organism": "Homo sapiens",
+    "organism_id": 9606,
+    "is_who_pathogen": false,
+    "disease_associations": [
+      "Parkinson disease"
+    ],
+    "monomer_plddt_avg": 35.2,
+    "dimer_plddt_avg": 77.1,
+    "disorder_delta": 41.9,
+    "drug_count": 0,
+    "known_drug_names": [],
+    "gap_score": 1.19,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-P37840-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "high_disorder_delta",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-P10636-F1",
+    "uniprot_id": "P10636",
+    "protein_name": "Microtubule-associated protein tau",
+    "gene_name": "MAPT",
+    "organism": "Homo sapiens",
+    "organism_id": 9606,
+    "is_who_pathogen": false,
+    "disease_associations": [
+      "Alzheimer disease"
+    ],
+    "monomer_plddt_avg": 30.1,
+    "dimer_plddt_avg": 75.5,
+    "disorder_delta": 45.4,
+    "drug_count": 0,
+    "known_drug_names": [],
+    "gap_score": 1.209,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-P10636-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "high_disorder_delta",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-P46527-F1",
+    "uniprot_id": "P46527",
+    "protein_name": "Cyclin-dependent kinase inhibitor 1B",
+    "gene_name": "CDKN1B",
+    "organism": "Homo sapiens",
+    "organism_id": 9606,
+    "is_who_pathogen": false,
+    "disease_associations": [
+      "Prostate cancer"
+    ],
+    "monomer_plddt_avg": 48.2,
+    "dimer_plddt_avg": 82.5,
+    "disorder_delta": 34.3,
+    "drug_count": 0,
+    "known_drug_names": [],
+    "gap_score": 1.168,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-P46527-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "high_disorder_delta",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-Q16665-F1",
+    "uniprot_id": "Q16665",
+    "protein_name": "Hypoxia-inducible factor 1-alpha",
+    "gene_name": "HIF1A",
+    "organism": "Homo sapiens",
+    "organism_id": 9606,
+    "is_who_pathogen": false,
+    "disease_associations": [
+      "Cancer"
+    ],
+    "monomer_plddt_avg": 50.1,
+    "dimer_plddt_avg": 88.2,
+    "disorder_delta": 38.1,
+    "drug_count": 0,
+    "known_drug_names": [],
+    "gap_score": 1.263,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-Q16665-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "high_disorder_delta",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-P16220-F1",
+    "uniprot_id": "P16220",
+    "protein_name": "cAMP responsive element binding protein 1",
+    "gene_name": "CREB1",
+    "organism": "Homo sapiens",
+    "organism_id": 9606,
+    "is_who_pathogen": false,
+    "disease_associations": [
+      "Huntington disease"
+    ],
+    "monomer_plddt_avg": 45.3,
+    "dimer_plddt_avg": 85.1,
+    "disorder_delta": 39.8,
+    "drug_count": 0,
+    "known_drug_names": [],
+    "gap_score": 1.249,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-P16220-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "high_disorder_delta",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-P01100-F1",
+    "uniprot_id": "P01100",
+    "protein_name": "Proto-oncogene c-Fos",
+    "gene_name": "FOS",
+    "organism": "Homo sapiens",
+    "organism_id": 9606,
+    "is_who_pathogen": false,
+    "disease_associations": [
+      "Osteosarcoma"
+    ],
+    "monomer_plddt_avg": 40.2,
+    "dimer_plddt_avg": 86.4,
+    "disorder_delta": 46.2,
+    "drug_count": 0,
+    "known_drug_names": [],
+    "gap_score": 1.326,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-P01100-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "high_disorder_delta",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-P05412-F1",
+    "uniprot_id": "P05412",
+    "protein_name": "Transcription factor AP-1",
+    "gene_name": "JUN",
+    "organism": "Homo sapiens",
+    "organism_id": 9606,
+    "is_who_pathogen": false,
+    "disease_associations": [
+      "Cancer"
+    ],
+    "monomer_plddt_avg": 42.1,
+    "dimer_plddt_avg": 87.5,
+    "disorder_delta": 45.4,
+    "drug_count": 0,
+    "known_drug_names": [],
+    "gap_score": 1.329,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-P05412-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "high_disorder_delta",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-O43281-F1",
+    "uniprot_id": "O43281",
+    "protein_name": "Securin",
+    "gene_name": "PTTG1",
+    "organism": "Homo sapiens",
+    "organism_id": 9606,
+    "is_who_pathogen": false,
+    "disease_associations": [
+      "Pituitary adenoma"
+    ],
+    "monomer_plddt_avg": 38.5,
+    "dimer_plddt_avg": 78.2,
+    "disorder_delta": 39.7,
+    "drug_count": 0,
+    "known_drug_names": [],
+    "gap_score": 1.179,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-O43281-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "high_disorder_delta",
+    "demo_highlight": false
+  },
+  {
+    "alphafold_id": "AF-P25963-F1",
+    "uniprot_id": "P25963",
+    "protein_name": "NF-kappa-B inhibitor alpha",
+    "gene_name": "NFKBIA",
+    "organism": "Homo sapiens",
+    "organism_id": 9606,
+    "is_who_pathogen": false,
+    "disease_associations": [
+      "Ectodermal dysplasia"
+    ],
+    "monomer_plddt_avg": 52.4,
+    "dimer_plddt_avg": 89.1,
+    "disorder_delta": 36.7,
+    "drug_count": 0,
+    "known_drug_names": [],
+    "gap_score": 1.258,
+    "monomer_structure_url": "https://alphafold.ebi.ac.uk/files/AF-P25963-F1-model_v6.cif",
+    "complex_structure_url": "",
+    "category": "high_disorder_delta",
+    "demo_highlight": false
+  }
+]
