@@ -9,6 +9,7 @@ import { DisorderDeltaBar } from './DisorderDeltaBar';
 export const ProteinViewer = forwardRef(({ monomerUrl, complexUrl, monomerPlddt, dimerPlddt, disorderDelta }, ref) => {
   const [isZoomed, setIsZoomed] = useState(false);
   const [activeHighlight, setActiveHighlight] = useState(null); // { indices, target }
+  const [representation, setRepresentation] = useState('cartoon');
   const monomerViewerRef = useRef(null);
   const complexViewerRef = useRef(null);
 
@@ -32,7 +33,29 @@ export const ProteinViewer = forwardRef(({ monomerUrl, complexUrl, monomerPlddt,
   }, [isZoomed]);
 
   const expandButton = useMemo(() => (
-    <div className="flex flex-row justify-end items-center">
+    <div className="flex flex-row justify-end items-center gap-4">
+      {/* Representation Controls */}
+      <div className="flex bg-bg-tertiary rounded border border-border p-1">
+        {[
+          { label: 'Cartoon', value: 'cartoon' },
+          { label: 'Ball & Stick', value: 'ball-and-stick' },
+          { label: 'Surface', value: 'gaussian-surface' },
+          { label: 'Spheres', value: 'spacefill' }
+        ].map(opt => (
+          <button
+            key={opt.value}
+            onClick={() => setRepresentation(opt.value)}
+            className={`px-3 py-1 font-mono text-[10px] uppercase tracking-wider rounded transition-colors ${
+              representation === opt.value
+                ? 'bg-bg-primary border border-border-subtle shadow-[0_1px_2px_rgba(0,0,0,0.4)] text-text-primary'
+                : 'text-text-muted hover:text-text-secondary'
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
       <button
         onClick={() => setIsZoomed(true)}
         className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider px-3 py-1.5 rounded border border-border bg-bg-tertiary text-text-secondary hover:text-text-primary hover:border-accent transition-colors duration-150"
@@ -43,7 +66,7 @@ export const ProteinViewer = forwardRef(({ monomerUrl, complexUrl, monomerPlddt,
         Expand View
       </button>
     </div>
-  ), []);
+  ), [representation, setIsZoomed, setRepresentation]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -61,6 +84,7 @@ export const ProteinViewer = forwardRef(({ monomerUrl, complexUrl, monomerPlddt,
             description="Disordered regions visible in isolation."
             visible={true}
             highlightIndices={(activeHighlight?.target === 'monomer' || activeHighlight?.target === 'comparison') ? activeHighlight.indices : null}
+            representation={representation}
           />
         </div>
 
@@ -77,7 +101,31 @@ export const ProteinViewer = forwardRef(({ monomerUrl, complexUrl, monomerPlddt,
             description="Functional domain revealed in complex form."
             visible={true}
             highlightIndices={(activeHighlight?.target === 'complex' || activeHighlight?.target === 'comparison') ? activeHighlight.indices : null}
+            representation={representation}
           />
+        </div>
+      </div>
+
+      {/* pLDDT Legend */}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3 py-3 px-4 bg-bg-secondary border border-border rounded">
+        <span className="font-mono text-[10px] uppercase text-text-muted tracking-wider">AlphaFold Confidence (pLDDT):</span>
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#2b4cdb', boxShadow: '0 0 0 1px rgba(0,0,0,0.1) inset' }} /> 
+            <span className="font-mono text-[10px] text-text-primary">Very High (&gt;90)</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#8fa8ef', boxShadow: '0 0 0 1px rgba(0,0,0,0.1) inset' }} /> 
+            <span className="font-mono text-[10px] text-text-primary">Confident (70-90)</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#f0e0c0', boxShadow: '0 0 0 1px rgba(0,0,0,0.1) inset' }} /> 
+            <span className="font-mono text-[10px] text-text-primary">Low (50-70)</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#db2b2b', boxShadow: '0 0 0 1px rgba(0,0,0,0.1) inset' }} /> 
+            <span className="font-mono text-[10px] text-text-primary">Very Low (&lt;50)</span>
+          </div>
         </div>
       </div>
 
@@ -122,6 +170,7 @@ export const ProteinViewer = forwardRef(({ monomerUrl, complexUrl, monomerPlddt,
                 description="Disordered regions visible in isolation."
                 visible={true}
                 highlightIndices={(activeHighlight?.target === 'monomer' || activeHighlight?.target === 'comparison') ? activeHighlight.indices : null}
+                representation={representation}
               />
             </div>
 
@@ -139,6 +188,7 @@ export const ProteinViewer = forwardRef(({ monomerUrl, complexUrl, monomerPlddt,
                 description="Functional domain revealed in complex form."
                 visible={true}
                 highlightIndices={(activeHighlight?.target === 'complex' || activeHighlight?.target === 'comparison') ? activeHighlight.indices : null}
+                representation={representation}
               />
             </div>
           </div>

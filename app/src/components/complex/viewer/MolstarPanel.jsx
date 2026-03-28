@@ -5,7 +5,7 @@ import { useMolstar } from './useMolstar';
 import { ViewerHeader } from './ViewerHeader';
 import { ViewerFooter } from './ViewerFooter';
 
-export const MolstarPanel = React.memo(forwardRef(({ structureUrl, label, plddt, description, visible = true, highlightIndices = null }, ref) => {
+export const MolstarPanel = React.memo(forwardRef(({ structureUrl, label, plddt, description, visible = true, highlightIndices = null, representation = 'cartoon' }, ref) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const { theme } = useTheme();
   const { containerRef, isLoading, error, highlightPocket, clearPocketHighlight } = useMolstar({
@@ -13,7 +13,8 @@ export const MolstarPanel = React.memo(forwardRef(({ structureUrl, label, plddt,
     label,
     autoLoad: visible && !!structureUrl,
     highlightIndices,
-    theme
+    theme,
+    representation
   });
 
   useImperativeHandle(ref, () => ({
