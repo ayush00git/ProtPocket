@@ -183,18 +183,30 @@ func BindingSiteHandler(ctx *gofr.Context) (interface{}, error) {
 		fragWg.Add(1)
 		go func(idx int) {
 			defer fragWg.Done()
-			pockets[idx].Fragments = services.FetchFragments(pockets[idx])
+			frags, err := services.FetchFragments(pockets[idx])
+			if err != nil {
+				pockets[idx].Fragments = []models.Fragment{}
+				return
+			}
+			pockets[idx].Fragments = frags
 		}(i)
 	}
-	
+
 	for i := range monomerPockets {
 		fragWg.Add(1)
 		go func(idx int) {
 			defer fragWg.Done()
-			monomerPockets[idx].Fragments = services.FetchFragments(monomerPockets[idx])
+			frags, err := services.FetchFragments(monomerPockets[idx])
+			if err != nil {
+				monomerPockets[idx].Fragments = []models.Fragment{}
+				return
+			}
+			monomerPockets[idx].Fragments = frags
 		}(i)
 	}
 	fragWg.Wait()
+
+	DefaultPocketStore.RegisterBindingSitesResult(pockets, monomerPockets)
 
 	// Count interface pockets
 	interfaceCount := 0

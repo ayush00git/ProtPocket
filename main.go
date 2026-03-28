@@ -7,6 +7,7 @@ import (
 
 func main() {
     app := gofr.New()
+    app.UseMiddleware(handlers.DockHTTPMiddleware)
 
     // Search proteins/diseases — returns ranked list by gap score
     // Example: GET /search?q=TP53
@@ -26,6 +27,10 @@ func main() {
     // Example: GET /undrugged
     // Example: GET /undrugged?filter=who_pathogen&limit=10
     app.GET("/undrugged", handlers.UndruggedHandler)
+
+	// Pocket-aware ZINC15 fragments (requires prior binding-sites run for the same process)
+	// Example: GET /zinc?pocket_id=1
+	app.GET("/zinc", handlers.ZincHandler)
 
     app.Run()
 }
