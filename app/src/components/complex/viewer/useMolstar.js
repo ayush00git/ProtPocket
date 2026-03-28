@@ -2,7 +2,6 @@ import { useRef, useEffect, useState, useCallback } from 'react';
 import { PluginUIContext } from 'molstar/lib/mol-plugin-ui/context';
 import { DefaultPluginUISpec } from 'molstar/lib/mol-plugin-ui/spec';
 import { createPluginUI } from 'molstar/lib/mol-plugin-ui';
-import { PluginBehaviors } from 'molstar/lib/mol-plugin/behavior';
 import { PluginConfig } from 'molstar/lib/mol-plugin/config';
 import { Color } from 'molstar/lib/mol-util/color';
 import { createRoot } from 'react-dom/client';
@@ -26,7 +25,7 @@ import 'molstar/lib/mol-plugin-ui/skin/dark.scss';
  * @param {boolean} options.autoLoad — whether to load immediately (default true)
  * @returns {{ containerRef, isLoading, error, resetCamera }}
  */
-export function useMolstar({ structureUrl, label = '', autoLoad = true, highlightIndices = null, theme = 'light' }) {
+export function useMolstar({ structureUrl, label = '', autoLoad = true, highlightIndices = null, theme = 'light', representation = 'cartoon' }) {
   const containerRef = useRef(null);
   const pluginRef = useRef(null);
   const initRef = useRef(false);
@@ -44,13 +43,6 @@ export function useMolstar({ structureUrl, label = '', autoLoad = true, highligh
     const init = async () => {
       try {
         const spec = DefaultPluginUISpec();
-        // Mol* shares DefaultQueryRuntimeTable across all plugins; the Accessible
-        // Surface Area behavior registers global query symbols on every instance.
-        // Multiple viewers (e.g. monomer + dimer) would re-add the same symbols and
-        // warn — drop this behavior since the pocket viewer does not need ASA UI.
-        spec.behaviors = spec.behaviors.filter(
-          (b) => b.transformer !== PluginBehaviors.CustomProps.AccessibleSurfaceArea
-        );
 
         // Hide bulky sidebars but keep the tooltips/sequence overlays active
         spec.layout = {
@@ -169,6 +161,46 @@ export function useMolstar({ structureUrl, label = '', autoLoad = true, highligh
     });
   }, [theme]);
 
+  // Update representation when it changes
+  useEffect(() => {
+    if (!pluginRef.current || !pluginRef.current.isInitialized || isLoading) return;
+    updateRepresentationStyle(pluginRef.current, representation);
+  }, [representation, isLoading]);
+
+  /**
+   * Update the representation type for all structures.
+   * Uses Mol*'s component manager to remove existing representations
+   * and add new ones with the desired type.
+   * Supported types: 'cartoon', 'ball-and-stick', 'gaussian-surface', 'spacefill', etc.
+   */
+  const updateRepresentationStyle = async (plugin, type) => {
+    try {
+      const { structures } = plugin.managers.structure.hierarchy.current;
+      if (!structures || structures.length === 0) return;
+
+      const mgr = plugin.managers.structure.component;
+
+      for (const s of structures) {
+        if (!s.components) continue;
+
+        for (const comp of s.components) {
+          if (!comp.representations || comp.representations.length === 0) continue;
+
+          // Remove all existing representations from this component
+          await mgr.removeRepresentations([comp]);
+
+          // Add new representation with the desired type
+          await mgr.addRepresentation([comp], type);
+        }
+      }
+
+      // Re-apply pLDDT coloring after swapping representation type
+      await applyPlddtColoring(plugin);
+    } catch (err) {
+      console.warn('[useMolstar] updateRepresentationStyle failed:', err);
+    }
+  };
+
   /**
    * Load a .cif file and apply pLDDT confidence coloring.
    */
@@ -222,6 +254,11 @@ export function useMolstar({ structureUrl, label = '', autoLoad = true, highligh
       // AlphaFold stores pLDDT in the B-factor column.
       // Mol* 'uncertainty' theme maps B-factor → standard 4-color pLDDT scale
       await applyPlddtColoring(plugin);
+
+      // Apply initial representation if not default (cartoon)
+      if (representation !== 'cartoon') {
+        await updateRepresentationStyle(plugin, representation);
+      }
 
       // Frame the camera
       plugin.managers.camera.reset();
@@ -328,17 +365,23 @@ export function useMolstar({ structureUrl, label = '', autoLoad = true, highligh
 
 /**
  * Apply pLDDT confidence coloring to all representations.
- * Tries 'uncertainty' theme first (Mol* built-in for AlphaFold),
- * then falls back to 'plddt-confidence', then 'b-factor'.
+ *
+ * AlphaFold stores pLDDT (confidence, 0-100) in the B-factor column.
+ * Mol*'s built-in 'uncertainty' theme uses a 'red-white-blue' scale with
+ * reverse=true, which maps HIGH B-factor → RED. That's correct for actual
+ * uncertainty, but WRONG for pLDDT where HIGH = HIGH confidence = should be BLUE.
+ *
+ * Strategy:
+ *  1. Apply uncertainty theme via the normal API (sets up proper B-factor reading).
+ *  2. Do a direct state-tree update to replace colorTheme.params.list with the
+ *     reversed color array, so the theme factory sees blue→white→red and its
+ *     built-in `reverse:true` flips it to red→white→blue mapping (0→red, 100→blue).
  */
 async function applyPlddtColoring(plugin) {
   const themeNames = ['uncertainty', 'plddt-confidence', 'b-factor'];
 
-  // Check which themes are available
   const registry = plugin.representation.structure.themes.colorThemeRegistry;
   let themeName = null;
-
-  // registry._list contains elements like { name: 'uncertainty', provider: {...} }
   const availableThemes = registry._list || [];
 
   for (const name of themeNames) {
@@ -349,21 +392,17 @@ async function applyPlddtColoring(plugin) {
   }
 
   if (!themeName) {
-    console.warn('[useMolstar] No pLDDT color theme found. Available themes:',
-      availableThemes.map(t => t.name));
+    console.warn('[useMolstar] No pLDDT color theme found. Available:', availableThemes.map(t => t.name));
     return;
   }
 
-  // Apply theme to all structure representations
   const structures = plugin.managers.structure.hierarchy.current.structures;
   if (!structures) return;
 
+  // Step 1: Apply the uncertainty theme via normal API
   for (const s of structures) {
     if (!s.components) continue;
-    
-    // Only pass components that actually have representations
     const validComponents = s.components.filter(c => c && c.representations);
-    
     if (validComponents.length > 0) {
       try {
         await plugin.managers.structure.component.updateRepresentationsTheme(
@@ -371,8 +410,47 @@ async function applyPlddtColoring(plugin) {
           { color: themeName }
         );
       } catch (e) {
-        console.warn('[useMolstar] Failed to apply theme to components:', e);
+        console.warn('[useMolstar] Failed to apply theme:', e);
       }
     }
   }
+
+  // Step 2: Directly patch representation state cells to flip the color list.
+  // The uncertainty theme default list is 'red-white-blue' with reverse=true,
+  // meaning domain_min(0)→blue, domain_max(100)→red.
+  // We swap the list to 'blue-white-red' so that with reverse=true:
+  // domain_min(0)→red, domain_max(100)→blue. Exactly what we want for pLDDT.
+  try {
+    const update = plugin.state.data.build();
+    let patched = false;
+
+    for (const s of structures) {
+      if (!s.components) continue;
+      for (const comp of s.components) {
+        if (!comp.representations) continue;
+        for (const repr of comp.representations) {
+          const cell = repr.cell;
+          if (!cell?.transform?.params?.colorTheme) continue;
+          const ct = cell.transform.params.colorTheme;
+          if (ct.name !== 'uncertainty') continue;
+
+          update.to(cell).update(old => {
+            // Reverse the color list array in-place so the theme factory's
+            // built-in reverse:true flips it back to the correct pLDDT mapping.
+            if (old.colorTheme?.params?.list?.colors) {
+              old.colorTheme.params.list.colors = [...old.colorTheme.params.list.colors].reverse();
+            }
+          });
+          patched = true;
+        }
+      }
+    }
+
+    if (patched) {
+      await update.commit();
+    }
+  } catch (e) {
+    console.warn('[useMolstar] Failed to patch color list for pLDDT:', e);
+  }
 }
+
