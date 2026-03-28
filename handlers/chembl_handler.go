@@ -24,7 +24,12 @@ func ChemblHandler(ctx *gofr.Context) (interface{}, error) {
 		return nil, gofrHTTP.ErrorInvalidParam{Params: []string{"pocket_id"}}
 	}
 
-	pocket, ok := DefaultPocketStore.Get(pid)
+	sourceType := ctx.Param("source_type")
+	if sourceType == "" {
+		sourceType = "dimer" // default for backwards compatibility
+	}
+
+	pocket, ok := DefaultPocketStore.Get(sourceType, pid)
 	if !ok {
 		return nil, gofrHTTP.ErrorEntityNotFound{Name: "pocket", Value: fmt.Sprintf("%d", pid)}
 	}

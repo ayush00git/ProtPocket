@@ -78,7 +78,7 @@ export function useDockingJob(apiBase = '/api') {
   }, []);
 
   const submitDocking = useCallback(
-    async (pocketId, proteinPdbId) => {
+    async (pocketId, proteinPdbId, sourceType) => {
       if (!selectedFragment?.smiles || !proteinPdbId) return;
 
       clearPoll();
@@ -101,6 +101,7 @@ export function useDockingJob(apiBase = '/api') {
           signal,
           body: JSON.stringify({
             pocket_id: pocketId,
+            source_type: sourceType || 'dimer',
             ligand_smiles: selectedFragment.smiles,
             protein_pdb_id: proteinPdbId,
           }),

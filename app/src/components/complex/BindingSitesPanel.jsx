@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useBindingSites } from '../../hooks/useBindingSites';
 import { PocketTableRow } from './PocketTableRow';
 import { ComparisonTab } from './ComparisonTab';
@@ -7,12 +7,11 @@ import { ComparisonTab } from './ComparisonTab';
  * BindingSitesPanel — predicted binding sites section for the complex detail page.
  * Lazy-loads binding site data and displays pocket cards with highlighting support.
  */
-export function BindingSitesPanel({ complexId, onHighlightPocket, onClearHighlight, proteinPdbId, onConformationChange }) {
+export function BindingSitesPanel({ complexId, onHighlightPocket, onClearHighlight, monomerStructureUrl, complexStructureUrl, onConformationChange, onStartDocking, activeDockingPocketId }) {
   const [enabled, setEnabled] = useState(true);
   const [activePocketIdx, setActivePocketIdx] = useState(null);
   const [showAll, setShowAll] = useState(false);
   const [activeTab, setActiveTab] = useState('monomer'); // 'monomer', 'complex', 'comparison'
-
 
   const { pockets, totalPockets, monomerPockets, monomerTotalPockets, interfaceCount, loading, error, comparison } = useBindingSites(
     complexId,
@@ -23,7 +22,6 @@ export function BindingSitesPanel({ complexId, onHighlightPocket, onClearHighlig
   const handleHighlight = (residueIndices, pocketIdx, targetOverride) => {
     const target = targetOverride || activeTab;
     if (activePocketIdx === pocketIdx) {
-      // Toggle off
       setActivePocketIdx(null);
       onClearHighlight?.(target);
     } else {
@@ -40,12 +38,12 @@ export function BindingSitesPanel({ complexId, onHighlightPocket, onClearHighlig
     setActiveTab(tab);
   };
 
-  // Gate hidden for now: no CTA, `enabled` stays false → no binding-sites fetch.
-  if (!enabled) {
-    return null;
-  }
+  const handleStartDocking = useCallback((info) => {
+    onStartDocking?.({ ...info, activeTab });
+  }, [onStartDocking, activeTab]);
 
-  // Loading state
+  if (!enabled) return null;
+
   if (loading) {
     return (
       <div className="mt-8 bg-bg-secondary border border-border rounded p-8 flex flex-col items-center gap-3">
@@ -62,7 +60,6 @@ export function BindingSitesPanel({ complexId, onHighlightPocket, onClearHighlig
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="mt-8 bg-bg-secondary border border-danger/30 rounded p-6 flex flex-col items-center gap-3">
@@ -83,8 +80,9 @@ export function BindingSitesPanel({ complexId, onHighlightPocket, onClearHighlig
   const allDisplayedPockets = activeTab === 'monomer' ? monomerPockets : pockets;
   const displayedTotal = activeTab === 'monomer' ? monomerTotalPockets : totalPockets;
   const displayedPockets = showAll ? allDisplayedPockets : allDisplayedPockets.slice(0, 5);
+  const currentProteinPdbId = activeTab === 'monomer' ? monomerStructureUrl : complexStructureUrl;
+  const currentSourceType = activeTab === 'monomer' ? 'monomer' : 'dimer';
 
-  // Empty state overall
   if (pockets?.length === 0 && monomerPockets?.length === 0) {
     return (
       <div className="mt-8 bg-bg-secondary border border-border rounded p-6 flex flex-col items-center gap-2">
@@ -96,7 +94,6 @@ export function BindingSitesPanel({ complexId, onHighlightPocket, onClearHighlig
     );
   }
 
-  // Results
   return (
     <div className="mt-8 bg-bg-secondary border border-border rounded p-6 flex flex-col gap-6">
       {/* Header */}
@@ -106,8 +103,6 @@ export function BindingSitesPanel({ complexId, onHighlightPocket, onClearHighlig
             <h3 className="font-display font-bold text-lg text-text-primary">
               Predicted Binding Sites
             </h3>
-
-            {/* Tabs */}
             <div className="flex bg-bg-tertiary rounded border border-border p-1">
               <button
                 onClick={() => handleTabSwitch('monomer')}
@@ -140,7 +135,6 @@ export function BindingSitesPanel({ complexId, onHighlightPocket, onClearHighlig
                 Comparison Analysis
               </button>
             </div>
-
             {activeTab !== 'comparison' && (
               <span className="font-mono text-[10px] text-text-muted bg-bg-tertiary px-2 py-0.5 rounded border border-border-subtle flex items-center justify-center">
                 {displayedTotal} total → {displayedPockets.length} shown
@@ -151,7 +145,6 @@ export function BindingSitesPanel({ complexId, onHighlightPocket, onClearHighlig
             {activeTab === 'comparison' ? 'Dimerization comparative analysis' : `fpocket analysis ${activeTab === 'complex' ? 'with disorder delta filtering' : 'single chain'}`}
           </p>
         </div>
-
         {activeTab === 'complex' && interfaceCount > 0 && (
           <div className="flex items-center gap-2 px-3 py-1.5 rounded bg-success/10 border border-success/20">
             <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
@@ -167,12 +160,12 @@ export function BindingSitesPanel({ complexId, onHighlightPocket, onClearHighlig
           comparison={comparison}
           activePocketIdx={activePocketIdx}
           handleHighlight={handleHighlight}
-          proteinPdbId={proteinPdbId}
+          monomerStructureUrl={monomerStructureUrl}
+          complexStructureUrl={complexStructureUrl}
           onConformationChange={onConformationChange}
         />
       ) : (
         <>
-          {/* Pocket table */}
           <div className="overflow-x-auto border border-border rounded">
             <table className="w-full text-left border-collapse">
               <thead className="bg-bg-tertiary border-b border-border">
@@ -197,8 +190,10 @@ export function BindingSitesPanel({ complexId, onHighlightPocket, onClearHighlig
                       activeTab={activeTab}
                       isActive={activePocketIdx === idx}
                       onHighlight={(residueIndices) => handleHighlight(residueIndices, idx)}
-                      proteinPdbId={proteinPdbId}
-                      onConformationChange={(confs, mode) => onConformationChange?.(confs, mode, activeTab)}
+                      proteinPdbId={currentProteinPdbId}
+                      sourceType={currentSourceType}
+                      onStartDocking={handleStartDocking}
+                      isDockingActive={activeDockingPocketId === pocket.pocket_id}
                     />
                   ))
                 ) : (
@@ -212,7 +207,6 @@ export function BindingSitesPanel({ complexId, onHighlightPocket, onClearHighlig
             </table>
           </div>
 
-          {/* Show All Button */}
           {displayedTotal > displayedPockets.length && !loading && !showAll && (
             <div className="flex justify-center mt-2">
               <button

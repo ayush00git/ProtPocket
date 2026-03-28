@@ -276,7 +276,8 @@ export function ComparisonTab({
   comparison, 
   activePocketIdx, 
   handleHighlight, 
-  proteinPdbId, 
+  monomerStructureUrl,
+  complexStructureUrl, 
   onConformationChange 
 }) {
   if (!comparison) return (
@@ -437,7 +438,8 @@ export function ComparisonTab({
                     onHighlight={(residueIndices) =>
                       handleHighlight(residueIndices, `int-${idx}`, comparisonHighlightTarget(pocket))
                     }
-                    proteinPdbId={proteinPdbId}
+                    proteinPdbId={complexStructureUrl}
+                    sourceType="dimer"
                     onConformationChange={(confs, mode) =>
                       onConformationChange?.(confs, mode, comparisonHighlightTarget(pocket))
                     }
@@ -491,7 +493,8 @@ export function ComparisonTab({
                     onHighlight={(residueIndices) =>
                       handleHighlight(residueIndices, `con-${idx}`, comparisonHighlightTarget(pocket))
                     }
-                    proteinPdbId={proteinPdbId}
+                    proteinPdbId={complexStructureUrl}
+                    sourceType="dimer"
                     onConformationChange={(confs, mode) =>
                       onConformationChange?.(confs, mode, comparisonHighlightTarget(pocket))
                     }
@@ -545,7 +548,8 @@ export function ComparisonTab({
                     onHighlight={(residueIndices) =>
                       handleHighlight(residueIndices, `emg-${idx}`, comparisonHighlightTarget(pocket))
                     }
-                    proteinPdbId={proteinPdbId}
+                    proteinPdbId={complexStructureUrl}
+                    sourceType="dimer"
                     onConformationChange={(confs, mode) =>
                       onConformationChange?.(confs, mode, comparisonHighlightTarget(pocket))
                     }

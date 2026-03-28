@@ -14,6 +14,7 @@ var dockingJobs = services.NewJobStore()
 
 type dockPOSTBody struct {
 	PocketID       int    `json:"pocket_id"`
+	SourceType     string `json:"source_type"`
 	LigandSMILES   string `json:"ligand_smiles"`
 	ProteinPDBPath string `json:"protein_pdb_path"`
 	ProteinPDBID   string `json:"protein_pdb_id"`
@@ -55,9 +56,14 @@ func serveDockSubmit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pocket, ok := DefaultPocketStore.Get(body.PocketID)
+	sourceType := strings.TrimSpace(body.SourceType)
+	if sourceType == "" {
+		sourceType = "dimer" // default for backwards compatibility
+	}
+
+	pocket, ok := DefaultPocketStore.Get(sourceType, body.PocketID)
 	if !ok {
-		http.Error(w, fmt.Sprintf(`{"error":"pocket %d not found"}`, body.PocketID), http.StatusNotFound)
+		http.Error(w, fmt.Sprintf(`{"error":"pocket %s:%d not found"}`, sourceType, body.PocketID), http.StatusNotFound)
 		return
 	}
 

@@ -144,6 +144,14 @@ func BindingSiteHandler(ctx *gofr.Context) (interface{}, error) {
 	}
 	totalPockets := len(pockets)
 
+	// Tag source types so PocketStore can disambiguate
+	for i := range pockets {
+		pockets[i].SourceType = "dimer"
+	}
+	for i := range monomerPockets {
+		monomerPockets[i].SourceType = "monomer"
+	}
+
 	// Step 4b: No interface logic for monomer
 	monomerTotalPockets := len(monomerPockets)
 	if monomerPLDDT != nil {
@@ -176,25 +184,8 @@ func BindingSiteHandler(ctx *gofr.Context) (interface{}, error) {
 		}
 	}
 
-	// Step 5: Fetch fragment suggestions concurrently
-	var fragWg sync.WaitGroup
-	
-	for i := range pockets {
-		fragWg.Add(1)
-		go func(idx int) {
-			defer fragWg.Done()
-			pockets[idx].Fragments = services.FetchFragments(pockets[idx])
-		}(i)
-	}
-
-	for i := range monomerPockets {
-		fragWg.Add(1)
-		go func(idx int) {
-			defer fragWg.Done()
-			monomerPockets[idx].Fragments = services.FetchFragments(monomerPockets[idx])
-		}(i)
-	}
-	fragWg.Wait()
+	// Fragments are fetched lazily via the /chembl endpoint when the user
+	// clicks "Dock Molecule", not during pocket analysis.
 
 	DefaultPocketStore.RegisterBindingSitesResult(pockets, monomerPockets)
 

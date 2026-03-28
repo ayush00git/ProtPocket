@@ -7,7 +7,6 @@ function normalizeFragment(f) {
   if (!f || typeof f !== 'object') return f;
   return {
     ...f,
-    // Ensure mw (Molecular Weight) is present for sorting/filtering
     mw: f.mw != null ? f.mw : f.mol_weight,
     id: f.chembl_id || f.zinc_id,
   };
@@ -15,15 +14,25 @@ function normalizeFragment(f) {
 
 /**
  * useChemblFragments — Standalone hook to fetch and cache ChEMBL fragment suggestions for a pocket.
+ *
+ * When options.lazy is true, fragments are NOT fetched automatically on mount —
+ * call refetch() explicitly (e.g. when the user clicks "Dock Molecule").
  */
 export function useChemblFragments(pocketId, options = {}, apiBase = '/api') {
   const [fragments, setFragments] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const cacheRef = useRef({}); // { [pocket_id]: float64[] }
+  const cacheRef = useRef({});
 
   const fetchFragments = useCallback(async () => {
     if (pocketId == null || pocketId === '') return;
+
+    // Check cache first
+    const cacheKey = `${options.sourceType || 'dimer'}-${pocketId}`;
+    if (cacheRef.current[cacheKey]) {
+      setFragments(cacheRef.current[cacheKey]);
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -33,6 +42,7 @@ export function useChemblFragments(pocketId, options = {}, apiBase = '/api') {
     if (options.volume != null) qs.set('volume', String(options.volume));
     if (options.hydrophobicity != null) qs.set('hydrophobicity', String(options.hydrophobicity));
     if (options.polarity != null) qs.set('polarity', String(options.polarity));
+    if (options.sourceType) qs.set('source_type', options.sourceType);
 
     try {
       const res = await fetch(`${apiBase}/chembl?${qs.toString()}`);
@@ -41,10 +51,9 @@ export function useChemblFragments(pocketId, options = {}, apiBase = '/api') {
       }
       const json_data = await res.json();
       const data = json_data["data"];
-      console.log(data);
       const list = (Array.isArray(data) ? data : []).map(normalizeFragment);
 
-      cacheRef.current[pocketId] = list;
+      cacheRef.current[cacheKey] = list;
       setFragments(list);
     } catch (e) {
       setError(e.message || 'Unknown fragments error');
@@ -52,11 +61,14 @@ export function useChemblFragments(pocketId, options = {}, apiBase = '/api') {
     } finally {
       setIsLoading(false);
     }
-  }, [pocketId, apiBase, options.volume, options.hydrophobicity, options.polarity, options.forceFetch]);
+  }, [pocketId, apiBase, options.volume, options.hydrophobicity, options.polarity, options.sourceType]);
 
+  // Only auto-fetch if NOT lazy mode
   useEffect(() => {
-    fetchFragments();
-  }, [fetchFragments]);
+    if (!options.lazy) {
+      fetchFragments();
+    }
+  }, [fetchFragments, options.lazy]);
 
   return {
     fragments,

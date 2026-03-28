@@ -23,7 +23,7 @@ import (
 const (
 	chemblMoleculeAPI = "https://www.ebi.ac.uk/chembl/api/data/molecule.json"
 	chemblFetchLimit  = 100
-	chemblMaxResults  = 100
+	chemblMaxResults  = 20
 	chemblHTTPTimeout = 10 * time.Second
 	mwScalingFactor   = 3.0 // pocket volume (Å³) / factor → max MW (Da) cap
 	logpTolerance     = 1.0

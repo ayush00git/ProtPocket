@@ -2,9 +2,8 @@ import React, { useEffect } from 'react';
 import { useDockingJob } from '../../hooks/useDockingJob';
 import { useChemblFragments } from '../../hooks/useChemblFragments';
 import { MoleculePicker } from './MoleculePicker';
-import { ConformationBrowser } from './ConformationBrowser';
 
-export function DockingPanel({ pocket, proteinPdbId, onConformationChange, apiBase = '/api' }) {
+export function DockingPanel({ pocket, proteinPdbId, sourceType, onConformationChange, onUndock, onDockingComplete, apiBase = '/api' }) {
   const {
     fragments,
     isLoading: fragmentsLoading,
@@ -14,8 +13,9 @@ export function DockingPanel({ pocket, proteinPdbId, onConformationChange, apiBa
     volume: pocket.volume,
     hydrophobicity: pocket.hydrophobicity,
     polarity: pocket.polarity,
+    sourceType: sourceType || 'dimer',
   }, apiBase);
-  console.log(fragments);
+
   const {
     step,
     selectedFragment,
@@ -29,11 +29,30 @@ export function DockingPanel({ pocket, proteinPdbId, onConformationChange, apiBa
     reset,
   } = useDockingJob(apiBase);
 
+  // When docking completes, notify parent (leaderboard + viewer) but do NOT push conformations
+  // directly to the viewer. Let ComplexDetailPage handle that via handleDockingComplete.
   useEffect(() => {
-    if (step === 'results' && activeConformation && conformations?.length) {
-      onConformationChange?.(conformations, activeConformation.mode);
+    if (step === 'results' && conformations?.length && selectedFragment) {
+      onDockingComplete?.({
+        pocketId: pocket.pocket_id,
+        sourceType: sourceType || 'dimer',
+        fragmentId: selectedFragment.chembl_id || selectedFragment.id,
+        fragmentName: selectedFragment.name || selectedFragment.chembl_id,
+        smiles: selectedFragment.smiles,
+        bindingAffinity: conformations[0].binding_affinity,
+        conformations,
+        timestamp: Date.now(),
+      });
     }
-  }, [step, activeConformation?.mode, conformations, onConformationChange]);
+    // Only fire once when step becomes 'results'
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
+  const handleUndock = () => {
+    onUndock?.();
+    onConformationChange?.(null, null);
+    reset();
+  };
 
   if (fragmentsLoading && step === 'idle') {
     return (
@@ -54,7 +73,7 @@ export function DockingPanel({ pocket, proteinPdbId, onConformationChange, apiBa
         error={fragmentsError}
         selectedFragment={selectedFragment}
         onSelect={selectFragment}
-        onConfirm={() => submitDocking(pocket.pocket_id, proteinPdbId)}
+        onConfirm={() => submitDocking(pocket.pocket_id, proteinPdbId, sourceType || 'dimer')}
         onRetry={refetchFragments}
         isDockingRunning={false}
       />
@@ -88,41 +107,30 @@ export function DockingPanel({ pocket, proteinPdbId, onConformationChange, apiBa
 
   if (step === 'results') {
     return (
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between px-3 py-2 bg-bg-primary border border-border-subtle rounded">
-          <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
-              />
-            </svg>
-            <span className="font-mono text-xs text-text-secondary">
-              {selectedFragment?.chembl_id}
-              {selectedFragment?.name && selectedFragment.name !== selectedFragment.chembl_id && ` · ${selectedFragment.name}`}
-              {selectedFragment?.mw != null && ` · MW ${selectedFragment.mw.toFixed(1)}`}
-              {selectedFragment?.logp != null && ` · LogP ${selectedFragment.logp.toFixed(2)}`}
-            </span>
+      <div className="flex flex-col gap-3">
+        {/* Compact result banner — full results shown in the detail panel below */}
+        <div className="flex items-center justify-between px-3 py-3 bg-success/5 border border-success/20 rounded">
+          <div className="flex items-center gap-3">
+            <div className="w-2.5 h-2.5 rounded-full bg-success" />
+            <div className="flex flex-col gap-0.5">
+              <span className="font-mono text-xs text-text-primary font-medium">
+                Docking complete — {selectedFragment?.chembl_id}
+              </span>
+              <span className="font-mono text-[10px] text-text-muted">
+                Best affinity: <span className="text-success font-bold">{conformations[0]?.binding_affinity?.toFixed(1)}</span> kcal/mol
+                {' · '}{conformations.length} pose{conformations.length !== 1 ? 's' : ''}
+                {' · '}View result in the leaderboard panel below
+              </span>
+            </div>
           </div>
           <button
             type="button"
-            onClick={reset}
+            onClick={handleUndock}
             className="font-mono text-[10px] uppercase tracking-wider px-3 py-1 rounded border border-border bg-bg-tertiary text-text-secondary hover:text-text-primary hover:border-accent transition-colors"
           >
             Re-dock
           </button>
         </div>
-
-        <ConformationBrowser
-          conformations={conformations}
-          activeMode={activeConformation?.mode ?? 1}
-          onSelect={(c) => {
-            setActiveConformation(c);
-            onConformationChange?.(conformations, c.mode);
-          }}
-        />
       </div>
     );
   }
@@ -136,7 +144,7 @@ export function DockingPanel({ pocket, proteinPdbId, onConformationChange, apiBa
         <span className="font-mono text-xs text-text-muted text-center">{jobError}</span>
         <button
           type="button"
-          onClick={reset}
+          onClick={handleUndock}
           className="font-mono text-[10px] uppercase tracking-wider px-3 py-1.5 rounded border border-border text-text-secondary hover:text-text-primary transition-colors"
         >
           Reset

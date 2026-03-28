@@ -7,6 +7,7 @@ type Pocket struct {
 	Volume            float64    `json:"volume"`
 	Hydrophobicity    float64    `json:"hydrophobicity"`
 	Polarity          float64    `json:"polarity"`
+	SourceType        string     `json:"source_type"` // "monomer" or "dimer"
 	IsInterfacePocket bool       `json:"is_interface_pocket"`
 	IsConserved       bool       `json:"is_conserved,omitempty"`
 	IsEmergent        bool       `json:"is_emergent,omitempty"`
