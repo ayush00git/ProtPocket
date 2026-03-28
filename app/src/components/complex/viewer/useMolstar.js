@@ -472,7 +472,7 @@ export function useMolstar({
     } else if (pocketActiveRef.current) {
       clearPocketHighlight();
     }
-  }, [highlightIndices, isLoading, highlightPocket, clearPocketHighlight]);
+  }, [highlightIndices, isLoading, highlightPocket, clearPocketHighlight, conformations, activeMode]);
 
   // When conformations array is newly populated: preload all
   useEffect(() => {

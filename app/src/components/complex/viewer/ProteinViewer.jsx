@@ -203,7 +203,7 @@ export const ProteinViewer = forwardRef(
                       ? activeHighlight.indices
                       : null
                   }
-                  representation={presentation}
+                  representation={representation}
                 />
               </div>
 
