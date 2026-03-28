@@ -17,7 +17,8 @@ export const ProteinViewer = forwardRef(({ monomerUrl, complexUrl, monomerPlddt,
     highlightPocket: (residueIndices, target = 'complex') => {
       setActiveHighlight({ indices: residueIndices, target });
     },
-    clearPocketHighlight: () => {
+    clearPocketHighlight: (target) => {
+      // For now, setting to null clears all, but we could filter by target if needed
       setActiveHighlight(null);
     }
   }));
@@ -83,7 +84,7 @@ export const ProteinViewer = forwardRef(({ monomerUrl, complexUrl, monomerPlddt,
             plddt={monomerPlddt}
             description="Disordered regions visible in isolation."
             visible={true}
-            highlightIndices={(activeHighlight?.target === 'monomer' || activeHighlight?.target === 'comparison') ? activeHighlight.indices : null}
+            highlightIndices={(activeHighlight?.target === 'monomer' || activeHighlight?.target === 'comparison' || activeHighlight?.target === 'both') ? activeHighlight.indices : null}
             representation={representation}
           />
         </div>
@@ -100,7 +101,7 @@ export const ProteinViewer = forwardRef(({ monomerUrl, complexUrl, monomerPlddt,
             plddt={dimerPlddt}
             description="Functional domain revealed in complex form."
             visible={true}
-            highlightIndices={(activeHighlight?.target === 'complex' || activeHighlight?.target === 'comparison') ? activeHighlight.indices : null}
+            highlightIndices={(activeHighlight?.target === 'complex' || activeHighlight?.target === 'comparison' || activeHighlight?.target === 'both') ? activeHighlight.indices : null}
             representation={representation}
           />
         </div>
@@ -169,7 +170,7 @@ export const ProteinViewer = forwardRef(({ monomerUrl, complexUrl, monomerPlddt,
                 plddt={monomerPlddt}
                 description="Disordered regions visible in isolation."
                 visible={true}
-                highlightIndices={(activeHighlight?.target === 'monomer' || activeHighlight?.target === 'comparison') ? activeHighlight.indices : null}
+                highlightIndices={(activeHighlight?.target === 'monomer' || activeHighlight?.target === 'comparison' || activeHighlight?.target === 'both') ? activeHighlight.indices : null}
                 representation={representation}
               />
             </div>
@@ -187,7 +188,7 @@ export const ProteinViewer = forwardRef(({ monomerUrl, complexUrl, monomerPlddt,
                 plddt={dimerPlddt}
                 description="Functional domain revealed in complex form."
                 visible={true}
-                highlightIndices={(activeHighlight?.target === 'complex' || activeHighlight?.target === 'comparison') ? activeHighlight.indices : null}
+                highlightIndices={(activeHighlight?.target === 'complex' || activeHighlight?.target === 'comparison' || activeHighlight?.target === 'both') ? activeHighlight.indices : null}
                 representation={representation}
               />
             </div>

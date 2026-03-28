@@ -6,6 +6,11 @@ import {
 import { PocketTableRow } from './PocketTableRow';
 import { FragmentList } from './FragmentList';
 
+/** Mol* target from comparison tab: monomer + homodimer only when `is_conserved`, else homodimer only. */
+function comparisonHighlightTarget(pocket) {
+  return pocket.is_conserved ? 'both' : 'complex';
+}
+
 // Recharts chart margins — must match the margin prop on <ScatterChart>
 const CHART_MARGIN = { top: 10, right: 30, bottom: 20, left: 40 };
 const ZOOM_FACTOR = 1.3;
@@ -423,7 +428,9 @@ export function ComparisonTab({ comparison, activePocketIdx, handleHighlight }) 
                     pocket={pocket}
                     activeTab="comparison"
                     isActive={activePocketIdx === `int-${idx}`}
-                    onHighlight={(residueIndices) => handleHighlight(residueIndices, `int-${idx}`)}
+                    onHighlight={(residueIndices) =>
+                      handleHighlight(residueIndices, `int-${idx}`, comparisonHighlightTarget(pocket))
+                    }
                   />
                 ))
               ) : (
@@ -471,7 +478,9 @@ export function ComparisonTab({ comparison, activePocketIdx, handleHighlight }) 
                     pocket={pocket}
                     activeTab="comparison"
                     isActive={activePocketIdx === `con-${idx}`}
-                    onHighlight={(residueIndices) => handleHighlight(residueIndices, `con-${idx}`)}
+                    onHighlight={(residueIndices) =>
+                      handleHighlight(residueIndices, `con-${idx}`, comparisonHighlightTarget(pocket))
+                    }
                   />
                 ))
               ) : (
@@ -519,7 +528,9 @@ export function ComparisonTab({ comparison, activePocketIdx, handleHighlight }) 
                     pocket={pocket}
                     activeTab="comparison"
                     isActive={activePocketIdx === `emg-${idx}`}
-                    onHighlight={(residueIndices) => handleHighlight(residueIndices, `emg-${idx}`)}
+                    onHighlight={(residueIndices) =>
+                      handleHighlight(residueIndices, `emg-${idx}`, comparisonHighlightTarget(pocket))
+                    }
                   />
                 ))
               ) : (
