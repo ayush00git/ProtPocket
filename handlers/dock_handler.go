@@ -16,6 +16,7 @@ type dockPOSTBody struct {
 	PocketID       int    `json:"pocket_id"`
 	LigandSMILES   string `json:"ligand_smiles"`
 	ProteinPDBPath string `json:"protein_pdb_path"`
+	ProteinPDBID   string `json:"protein_pdb_id"`
 }
 
 // DockHTTPMiddleware intercepts /dock and /dock/status so POST /dock can return HTTP 202 with a top-level job_id JSON body.
@@ -45,8 +46,12 @@ func serveDockSubmit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if body.PocketID <= 0 || strings.TrimSpace(body.LigandSMILES) == "" || strings.TrimSpace(body.ProteinPDBPath) == "" {
-		http.Error(w, `{"error":"pocket_id, ligand_smiles, and protein_pdb_path are required"}`, http.StatusBadRequest)
+	proteinPath := strings.TrimSpace(body.ProteinPDBPath)
+	if proteinPath == "" {
+		proteinPath = strings.TrimSpace(body.ProteinPDBID)
+	}
+	if body.PocketID <= 0 || strings.TrimSpace(body.LigandSMILES) == "" || proteinPath == "" {
+		http.Error(w, `{"error":"pocket_id, ligand_smiles, and protein_pdb_path (or protein_pdb_id) are required"}`, http.StatusBadRequest)
 		return
 	}
 
@@ -57,7 +62,7 @@ func serveDockSubmit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	lig := models.Fragment{SMILES: strings.TrimSpace(body.LigandSMILES)}
-	jobID := dockingJobs.Submit(pocket, lig, strings.TrimSpace(body.ProteinPDBPath))
+	jobID := dockingJobs.Submit(pocket, lig, proteinPath)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)

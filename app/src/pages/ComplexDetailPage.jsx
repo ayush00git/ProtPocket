@@ -45,6 +45,8 @@ export function ComplexDetailPage() {
               complexId={id}
               onHighlightPocket={(indices, target) => viewerRef.current?.highlightPocket?.(indices, target)}
               onClearHighlight={(target) => viewerRef.current?.clearPocketHighlight?.(target)}
+              proteinPdbId={complex.complex_structure_url?.replace(/\.cif$/i, '.pdb') || complex.uniprot_id || ''}
+              onConformationChange={(confs, mode) => viewerRef.current?.setConformations?.(confs, mode)}
             />
           </div>
         )}

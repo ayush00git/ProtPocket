@@ -28,9 +28,9 @@ func main() {
     // Example: GET /undrugged?filter=who_pathogen&limit=10
     app.GET("/undrugged", handlers.UndruggedHandler)
 
-	// Pocket-aware ZINC15 fragments (requires prior binding-sites run for the same process)
-	// Example: GET /zinc?pocket_id=1
-	app.GET("/zinc", handlers.ZincHandler)
+	// Pocket-aware ChEMBL fragments (requires prior binding-sites run in-process). Optional: volume, hydrophobicity, polarity.
+	// Example: GET /chembl?pocket_id=1&volume=600&hydrophobicity=0.5&polarity=0.2
+	app.GET("/chembl", handlers.ChemblHandler)
 
     app.Run()
 }

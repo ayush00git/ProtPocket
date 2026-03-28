@@ -6,7 +6,7 @@ import (
 	"github.com/ProtPocket/models"
 )
 
-// PocketStore holds pockets keyed by fpocket PocketID for follow-up API calls (e.g. ZINC refetch).
+// PocketStore holds pockets keyed by fpocket PocketID for follow-up API calls (e.g. ChEMBL fragment refetch).
 // When both complex and monomer pockets share an ID, the dimer entry wins; monomer pockets are
 // stored only for IDs not yet present.
 type PocketStore struct {
