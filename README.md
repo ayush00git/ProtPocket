@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 # ProtPocket
 ### Theme Alignment: MedTech / Healthcare + AI & Machine Learning
 
@@ -302,10 +303,223 @@ func main() {
     app.GET("/undrugged", UndruggedTargetsHandler)
     app.Run()
 }
+=======
+<div align="center">
+  <img src="./app/public/logo.png" width="120" alt="ProtPocket Logo" />
+  <h1>ProtPocket : Protein Complex Intelligence</h1>
+  <p><strong>A Comprehensive Computational Framework for Early-Stage Drug Discovery</strong></p>
+
+  [Introduction & Problem](#-1-introduction--the-undruggable-problem) • [Glossary](#-2-glossary-for-non-experts) • [The Discovery Pipeline](#-3-the-discovery-pipeline) • [Formulas Explained](#-4-mathematical-formulas-explained) • [System Architecture](#-5-system-architecture-the-brain-and-the-face) • [End-to-End Case Study](#-6-end-to-end-case-study) • [Setup](#-7-setup--installation)
+</div>
+
+---
+
+## 🔬 1. Introduction & The "Undruggable" Problem
+
+Welcome to **ProtPocket**, a unified, automated computational pipeline designed to accelerate the earliest phases of drug discovery.
+
+### The Challenge of Modern Medicine
+Our bodies are driven by **Proteins**—nature's tiny, complex biological machines. These proteins govern all aspects of human biology, from cellular respiration to immune responses. When they malfunction, mutate, or interact improperly, they cause severe human diseases such as cancer, neurodegenerative disorders like Alzheimer's, or dangerous infectious diseases like tuberculosis. 
+
+To fix a malfunctioning protein, doctors prescribe a **Drug**. Chemically, a drug is usually a very small molecule designed to physically latch onto the large protein and alter its behavior—much like throwing a wrench into a spinning gear, effectively grinding the disease process to a halt.
+
+However, historically, the worldwide pharmaceutical industry has faced a massive, almost insurmountable hurdle: the **"Undruggable" Proteome**. 
+
+An estimated 80% to 85% of all disease-causing human proteins are currently considered "undruggable." Why is this the case? The answer lies in structural biology. For a small drug molecule to latch onto a protein, the protein must have a stable, rigid structural shape (a lock) for the drug (the key) to fit into. Unfortunately, many crucial proteins are physically "floppy." They have no stable shape when observed alone. If a protein is constantly wiggling like a loose piece of string in the cellular environment, a rigid drug molecule cannot grab onto it. 
+
+Even more complex is the fact that many diseases are caused not by single proteins acting alone, but by two different proteins temporarily sticking together to form a larger **Complex**. Breaking this connection is notoriously difficult because the areas where they connect are often flat, lacking obvious "keyholes" for drugs.
+
+### The ProtPocket Solution
+**ProtPocket** is a software platform built to solve this exact, multi-billion-dollar problem. By leveraging recent, revolutionary breakthroughs in Artificial Intelligence—specifically structural predictions derived from Google DeepMind's AlphaFold database—ProtPocket automatically discovers hidden "grabbing points" (called Pockets) on protein complexes. 
+
+Crucially, ProtPocket focuses entirely on pockets that *only physically exist* when the disease-causing proteins join together. 
+
+This repository documents the entire codebase, the newly developed mathematical formulas we utilize, and the complete system architecture that takes a researcher from a simple textual protein name all the way to a fully mapped, 3D drug target with suggested chemical starting points—all running entirely locally or self-hosted.
+
+---
+
+## 📖 2. Glossary (For Non-Experts)
+
+To ensure this documentation is fully accessible to software engineers, product designers, and judges from non-biological backgrounds, please review the following core scientific concepts before diving into the system architecture.
+
+*   **Amino Acid / Residue**: The basic building blocks of a protein. A protein is essentially a tremendously long chain of amino acids naturally folded into a 3D shape, similar to a tangled telephone cord. In this document, we often refer to them individually as "residues."
+*   **Monomer**: A single, solitary protein chain floating by itself in an environment.
+*   **Complex (or Dimer / Homodimer)**: Two or more unique protein chains that have naturally joined together to perform a specific biological task. If the two assembled chains are perfectly identical, the overall structure is called a "Homodimer."
+*   **Interface**: The exact, physical connecting boundary where two unique protein chains actually touch each other in a complex.
+*   **Intrinsically Disordered Region (IDR) / Disorder**: An area on a protein (or an entire protein itself) that is physically "floppy" and completely lacks a fixed, rigid 3D shape when it is alone. 
+*   **pLDDT (predicted Local Distance Difference Test)**: A sophisticated confidence score ranging from 0 to 100 generated by the AlphaFold AI system. It mathematically predicts how stable a specific region of a protein is. 
+    *   A **low pLDDT score** (less than 50) means the AI concludes that region is a "floppy" string. 
+    *   A **high pLDDT score** (greater than 70) means the AI is confident that the specific region forms a stable, solid, and reliable structure. 
+*   **Pocket (or Cavity / Void)**: A tiny cleft, hole, indentation, or cavern on the 3D surface of a protein. A pocket is exactly where a small drug molecule can physically "fit," acting precisely like a key entering a lock.
+*   **Molecular Docking**: A complex computer simulation used by scientists that tries to mathematically deduce whether a specific chemical molecule can geometrically and chemically fit inside a specific protein pocket.
+*   **Fragment**: A very small, simple chemical molecule (usually under 300 Daltons in mass). It is not a finished drug you would take from a pharmacy, but it might lightly fit into a pocket. Chemists use fragments as a starting foundation (often called a "Lead") to build larger, complete drugs iteratively.
+
+---
+
+## 🧬 3. The Discovery Pipeline
+
+Developing a brand-new medicine from scratch can take between 10 to 15 years and easily cost over two billion dollars. The journey is broken into several distinct, rigorous "Stages" of research and development. ProtPocket completely and flawlessly automates the **First Four Stages** of this massive pipeline, reducing what normally requires months of manual database searching and computational biology down to mere seconds.
+
+### Stage 1: Target Identification (Finding the Target)
+**The Goal:** Find the right "villain." We need to locate a specific disease-causing protein that desperately needs a new therapeutic solution and has not been solved yet.
+
+**How we solve it:** ProtPocket automatically queries three major, independent biological API databases simultaneously via its highly optimized Go backend:
+1.  **UniProt (Universal Protein Resource):** Providing the true identity, the official gene name, and the documented disease associations of the queried protein.
+2.  **AlphaFold Database:** Providing the raw 3D coordinate files (mmCIF format) for the exact atoms of the protein's predicted structure.
+3.  **ChEMBL:** A massive pharmaceutical database providing the total number of approved drugs currently targeting this specific protein globally.
+
+**The Output:** The pipeline continuously gathers this data and strictly filters for proteins linked to high-priority diseases. Crucially, the system checks the ChEMBL response payload to ensure that the protein **does not yet have any known approved drugs**. Finding a protein with zero known drugs proves it is a novel and urgent target for research.
+
+### Stage 2: Target Validation (Proving It's a Good Target)
+**The Goal:** Prove mathematically and physically that aiming a new, expensive drug at this specific protein will actually result in a stable binding event, rather than the drug simply slipping off a "floppy" string.
+
+**How we solve it:** ProtPocket introduces a custom computational calculation built directly upon AlphaFold confidence data, called the **Disorder Delta**. The Go backend fetches the AlphaFold pLDDT (stability) score for the solitary Monomer, and directly compares it to the AlphaFold pLDDT score for the joint Complex variant of the same protein. We are actively hunting for proteins that are completely disordered (unstable) when alone, but become rigid and stable when they physically stick to their partner complex.
+
+**The Output:** A high positive Disorder Delta acts as irrefutable mathematical proof. It validates that the protein *only* holds a functional, stable, and targetable structural shape when it is actively engaged in its disease-causing complex. It validates that the structural change is directly and inextricably tied to the biological function of the disease.
+
+### Stage 3: Pocket Mapping (Finding the Keyhole)
+**The Goal:** Now that we have validated a stable target, we need to find the exact physical volumetric space (the 3D coordinates) on the protein where a human chemist can design a drug to bind and interrupt the process.
+
+**How we solve it:** The backend system safely and securely downloads the raw 3D structural file (`.cif`) of the complex into an isolated local temporary directory. It then spawns a secure sub-process running an established scientific algorithm called `fpocket`. `fpocket` uses a geometrical mathematics technique called Voronoi tessellation to systematically scan the entire microscopic surface of the 3D protein, searching for spheres of empty space (cavities).
+
+**The Output:** `fpocket` may find 50 or more different cavities scattered randomly across the massive protein structure. ProtPocket computationally parses this raw output data and specifically filters for the highly-coveted **Interface Pockets**. These are very specific cavities that sit exactly on the physical boundary where the two distinct proteins touch *and* whose atoms directly align with the regions that gained stability (derived from the Disorder Delta in Stage 2). Jamming a small molecule into an Interface Pocket acts precisely like throwing a metal wedge between two moving gears, powerfully forcing the biological complex to break apart and stop the disease.
+
+### Stage 4: Lead Generation (Suggesting the Key)
+**The Goal:** Suggest a real, physical chemical starting point that structurally, geometrically, and chemically matches the keyhole found in Stage 3.
+
+**How we solve it:** Once an Interface Pocket has been geographically mapped, the backend algorithm calculates the pocket's strict physical constraints: How physically large is it (its Volume)? Is it highly watery or oily (its Hydrophobicity)? Is it electrically charged (its Polarity)? Armed with these precise constraints, ProtPocket automatically packages an HTTP request out to the **ChEMBL API**, a massive public catalogue containing millions of bioactive chemical compounds.
+
+**The Output:** The system queries ChEMBL and automatically suggests small molecules (Fragments) that physically and chemically match the pocket's geometry. These compounds serve as computational "Leads"—starting scaffolds that a human medicinal chemist can academically test in a laboratory, and systematically expand block-by-block into a final, FDA-approved medicine.
+
+---
+
+## 🧮 4. Mathematical Formulas Explained
+
+ProtPocket does not just act as an aggregator of existing data; it computes entirely new insights using a suite of specific, proprietary mathematical formulas developed specifically for this architectural project.
+
+### 4.1. The Disorder Delta (Δ pLDDT) Formula
+The most critical thermodynamic observation made by the system is tracking how a protein's stability shifts dynamically. As defined previously in the glossary, AlphaFold provides a pLDDT score (ranging from 0.0 to 100.0) measuring absolute confidence in the structure. 
+
+The Go backend (specifically located in the file `services/plddt.go`) programmatically aligns the sequence of the solitary Monomer and the paired Dimer (Complex) and calculates the delta:
+
+`Disorder Delta = (pLDDT of Dimer) - (pLDDT of Monomer)`
+
+*   **If Disorder Delta ≈ 0:** The protein is a rigid rock whether it is alone or grouped. It is a traditional target, but inherently not a novel "folding-upon-binding" target.
+*   **If Disorder Delta < 0:** The protein ironically loses structure upon binding (which is scientifically rare but possible).
+*   **If Disorder Delta >= 15 to 30:** This is classified as the "Golden Target." It proves that the protein chain is highly disordered as a monomer (for example, with a low pLDDT ~45), but upon binding its partner, it locks into a perfectly rigid structure (shooting up to a pLDDT ~85). The massive 40-point gain represents a profound thermodynamic stabilization force that a drug could interrupt.
+
+### 4.2. Dimerization Druggability Gain Index (DDGI)
+When the system is traversing multiple pockets found by fpocket, we calculate a compound score that merges geometrical viability mathematically with the thermodynamic stability gain:
+
+`DDGI = (fpocket Druggability Score) × (Average Local Interface Disorder Delta)`
+
+The `fpocket` Druggability Score evaluates the pocket's shape, while the Disorder Delta evaluates the pocket's biological relevance entirely. By multiplying them together, the DDGI heavily penalizes geometrically perfect pockets that sit on completely irrelevant parts of the protein, while massively boosting pockets that sit directly on the critical interface. 
+
+### 4.3. The Urgency Gap Score
+To rank multiple protein targets intelligently on the frontend UI dashboard, the system computes an overarching urgency metric.
+
+`Gap Score = [ (Base Score) + (Disorder Delta Bonus) ] × (WHO Pathogen Multiplier) - (Drug Coverage Penalty)`
+
+*   **Base Score:** This represents the baseline AlphaFold confidence of the overall complex. 
+*   **WHO Pathogen Multiplier:** The World Health Organization maintains an official list of the 19 most dangerous global pathogens (like Mycobacterium tuberculosis or Staphylococcus aureus). In the code file `handlers/search.go`, if the protein's organism NCBI taxonomy ID matches this hard-coded list, the protein receives a strict mathematical parameter of `× 2.0` multiplier, immediately catapulting it to the very top of the urgency rankings.
+*   **Drug Coverage Penalty:** If the ChEMBL database reports that 5 approved drugs already target this protein, the score is mathematically slashed toward zero. The platform fundamentally only cares about prioritizing the *undrugged* proteome to maximize pharmaceutical impact.
+
+---
+
+## ⚙️ 5. System Architecture: The Brain and the Face
+
+ProtPocket is beautifully structured as a "Monorepo." It contains a robust, highly parallel backend server (The Brain) and an analytical, interactive frontend dashboard (The Face). Both systems operate entirely independently but communicate seamlessly.
+
+### 5.1. The Backend (The Brain) - Built with Go
+The backend is written entirely in **Go (Golang)**. This language choice was made to ensure extreme computational speed, native concurrency handling, and the ability to safely manage complex external biological subprocesses without blocking the server.
+
+#### Concurrent Data Aggregation
+When a user initiates a search for a protein, `handlers/search.go` spins up high-speed **goroutines** to execute network API calls concurrently across the internet. Instead of waiting for UniProt to finish loading before deciding to call AlphaFold, the Go backend queries `rest.uniprot.org`, `alphafold.ebi.ac.uk`, and `ebi.ac.uk/chembl` at the exact same time. The assorted JSON payloads are rapidly parsed, sanitized, and merged simultaneously into a single cohesive `models.Complex` struct in memory.
+
+#### Safe Subprocessing for Algorithm Execution
+Because Google DeepMind provides AlphaFold files simply as enormous lists of raw 3D coordinates (mmCIF format) without explicitly highlighting cavities or bindings, we must compute the exact cavities ourselves natively. 
+1. The user requests a localized pocket analysis for a specific protein.
+2. `services/alphafold.go` dynamically downloads the latest `.cif` asset file from DeepMind servers securely, storing it directly into a localized `./tmp` directory mapped effectively safely relative to the application's environment.
+3. `services/fpocket.go` utilizes Go's native `os/exec` package to carefully spawn an isolated `fpocket` subprocess entirely detached from the main application thread.
+4. The spawned subprocess rapidly runs Voronoi tessellation analysis over the immense asset file.
+5. Once complete, the backend natively intercepts and parses the massive output text `structure_info.txt` alongside individual chunked `.pdb` atomic files representing the cavities, extracting the exact B-factor columns (specifically residue columns 61-66) to pull AlphaFold's structural translation out of the void mapping!
+
+#### Chemical Networking
+Following positive structural pocket discovery, `services/fragments.go` spins up a designated `sync.WaitGroup` that batches HTTP requests out to the ChEMBL API, forcing it to filter its internal database for molecules mapping strictly to the volume constraints of the newly-discovered Interface Pocket.
+
+### 5.2. The Frontend (The Face) - Built with React & JavaScript
+The frontend serves purely to translate raw chemical arrays and intensive floating-point math into highly intuitive, actionable user interfaces for biological researchers who may not be completely familiar with coding.
+
+#### Dashboard and Data Visualization
+The platform is built on modern **React**, specifically styled and themed without using bland default frameworks to maintain a premium, custom scientific aesthetic across the entire viewport. Mathematical data, such as the comparative Disorder Delta metrics, are mapped cleanly into interactive structural charts (utilizing customized visualization libraries like Recharts) to visually represent what we call the "Golden Quadrant" of druggable anomalies.
+
+#### Deep Integration with the Mol* 3D Engine
+The absolute crown jewel of the ProtPocket frontend is its deep, seamless integration with **Mol*** (MolStar), the industry-leading, high-performance WebGL framework designed for real-time 3D macromolecular rendering. 
+*   The raw `.cif` coordinate URL fetched securely by the Go backend is piped entirely natively into the `useMolstar.js` React hook.
+*   Mol* immediately parses this and renders the full structural 3D protein directly in the browser window asynchronously, allowing for real-time zooming, infinite panning, and responsive rotation without ever requiring the user to install heavy desktop visualization software.
+*   **The Connection Mechanics:** The frontend component ecosystem is remarkably interconnected. When the backend successfully finds an Interface Pocket and sends the JSON blob to the frontend, an interactive "Pocket Card" is rendered in a React-driven sidebar sidebar. The moment a researcher clicks the "Highlight in Viewer" button on that specific card, React dynamically unpacks the exact atomic `residueIndices` for that specific pocket. It instantly passes those geometric indices as a standard `forwardRef` up into the native Mol* `lociSelects` API. The 3D engine immediately intercepts the command, identically forcing the virtual camera to fly spatially to those exact coordinates, and crucially, it paints those specific targeted amino acids in a bright, glowing green color, clearly illuminating the exact real-world site where a future drug should be engineered to bind.
+
+---
+
+## 🧪 6. End-to-End Case Study: Q55DI5
+
+To fully grasp the magnitude of the automated pipeline, let us trace exactly, step-by-step, what physically transpires when a medical researcher searches for the biological protein **Q55DI5**:
+
+1.  **The User Initiates Search**: The researcher enters `Q55DI5` into the frontend interactive search bar and submits the query.
+2.  **API Resolution**: The Go backend intercepts the HTTP request and looks up `Q55DI5` against the UniProt REST API. It resolves that this is an essential transcription elongation protein found entirely in a dangerous human pathogen. 
+3.  **AlphaFold Discovery**: Concurrently alongside the first request, the backend aggressively queries the AlphaFold metadata API. It makes a stunning discovery: AlphaFold has successfully predicted *both* a solitary Monomer form and a functional Dimer form of this exact protein. 
+4.  **Math in Motion**: The backend ingests and parses the associated confidence JSON data. The Monomer's average recorded pLDDT is `50.56` (indicating it is highly disordered and floppy). The Dimer's average recorded pLDDT is `86.06` (indicating the structure is phenomenally stable). The backend rapidly computes a final Disorder Delta of `+35.50`. This proves computationally that the protein stabilizes massively upon binding to a secondary agent!
+5.  **ChEMBL Verification**: The backend simultaneously queries the ChEMBL pharmaceutical database and determines definitively that exactly `0` approved human drugs currently exist that target this pathogen protein. 
+6.  **Dashboard Render**: Q55DI5 is computationally assigned an incredibly high Gap Score due to its novelty, and it is presented instantly to the user securely perched at the absolute top of the "Undrugged Targets Dashboard." 
+7.  **Hunting the Pocket**: Driven by the massive Gap Score, the user clicks "Find Binding Pockets." The Go backend spins up its temporary `fpocket` isolated container, meticulously analyzes the 3D coordinate file, and officially flags "Pocket 3" specifically because it geometrically spans across the two distinct protein chains (it's exactly an interface pocket!).
+8.  **Chemical Leads**: The backend automatically formulates an outbound query toward the ChEMBL database and flawlessly retrieves 3 highly viable chemical fragments (weighing strictly under 500 Daltons) that would physically fit perfectly inside the designated Pocket 3.
+9.  **Visual Proof**: Concluding the pipeline, the user clicks Pocket 3 directly in the React UI sidebar. The Mol* WebGL viewer instantly rotates the protein automatically, zooming in profoundly and glowing a radiant green exactly over Pocket 3, while cleanly displaying the 3 chemical fragments directly below it in the UI mapping.
+
+In mere seconds, the overarching ProtPocket framework has taken a completely seemingly random alphanumeric protein string (`Q55DI5`) and mathematically proven it is an urgent, undrugged, structurally validated drug target, located its exact physical vulnerable attack point, and provided the chemical component blueprints necessary to attack and disable it. This fundamentally revolutionizes the speed of early-stage discovery.
+
+---
+
+## 🚀 7. Setup & Installation
+
+The repository is elegantly divided into two distinct processing environments. Both environments must be running concurrently independently for the full application pipeline to function as intended.
+
+### Setting Up the Go Backend (The Brain)
+Requirements: **Go 1.20+** formally installed on your local host system.
+```bash
+# 1. Open your terminal emulator and navigate to the root directory where the main.go file resides.
+cd /path/to/ProtPocket
+
+# 2. Command the Go modular ecosystem to securely download all required modules and dependencies.
+go mod download
+
+# 3. Boot up the high-performance local server instance natively.
+go run main.go
+
+# 4. The backend API will now be actively listening locally on your host environment.
+# Note: It typically binds natively and starts listening on http://localhost:8000
+```
+
+### Setting Up the React Frontend (The Face)
+Requirements: **Node.js (v16+)** and **npm** formally installed.
+```bash
+# 1. Open an entirely new, separate terminal window separate from your backend.
+# 2. Navigate explicitly deeper into the 'app' directory containing the isolated React codebase.
+cd /path/to/ProtPocket/app
+
+# 3. Instruct npm to install all required Javascript dependencies, which significantly includes the Vite build tool and the massive Mol* client libraries.
+npm install
+
+# 4. Spin up the Vite-powered High-Speed Replacement development server cleanly.
+npm run dev
+
+# 5. The command line process will eventually output a secure local network address for you.
+# Finally, open your preferred modern web browser and manually navigate to http://localhost:5173 to view the dashboard live and interactively!
+>>>>>>> Stashed changes
 ```
 
 ---
 
+<<<<<<< Updated upstream
 ### Hour 2–8: Backend Core
 
 **Backend developer (primary)**
@@ -631,3 +845,30 @@ The AlphaFold protein complex dataset was released **March 16, 2026 — 12 days 
 - NVIDIA Preprint on methodology: https://research.nvidia.com/labs/dbr/assets/data/manuscripts/afdb.html
 
 ---
+=======
+## 👥 8. Creators & Contributors
+
+This comprehensive structural biology analytical tool was systematically designed, meticulously scientifically conceptualized, and fully engineered from scratch by:
+- **Arshita Jaryal** - Bioinformatics Analysis, System Architectural Direction, Scientific Theory - [GitHub](https://github.com/jaryalarshita)
+- **Ayush Kumar** - Scalable Backend Infrastructure, REST API Aggregation, Concurrency Modeling - [GitHub](https://github.com/ayush00git)
+- **Divyansh Singh** - Frontend State Management, Complex Data Visualization, Mol* 3D WebGL Integration - [GitHub](https://github.com/divyansh0x0)
+
+---
+
+## 📚 9. Scientific References & Acknowledgments
+
+This monumental platform fundamentally stands proudly on the shoulders of absolute giants within the open-source software and open-science community organizations.
+
+1.  **AlphaFold Protein Structure Database**: For providing the unprecedented 1.7 million structural homodimer complex predictions freely that completely make the novel Disorder Delta computation practically possible at scale. Developed by EMBL-EBI and Google DeepMind. [Website](https://alphafold.ebi.ac.uk/)
+2.  **UniProt (Universal Protein Resource)**: Serving as the absolute, definitive central hub for systematically identifying protein naming sequences, ontology mapping, and documented biological functions globally. [Website](https://www.uniprot.org/)
+3.  **ChEMBL**: An impressively massive, manually curated pharmaceutical database tracking millions of bioactive molecules, their known documented drug targets, and current pharmaceutical trial phases. [Website](https://www.ebi.ac.uk/chembl/)
+4.  **fpocket**: The foundational, robust open-source pocket detection software utilizing complex Voronoi mathematical calculations natively, written entirely in C for velocity. Developed gracefully by Discngine, without which geometrical protein mapping would require severely intensive thermodynamic molecular dynamic simulations. [GitHub](https://github.com/Discngine/fpocket)
+5.  **Mol***: The truly revolutionary web-based 3D macromolecular visualization toolkit structure that effortlessly allows standard React environments to render extraordinarily complex `.cif` coordinate configurations perfectly and instantaneously using standard WebGL. [Website](https://molstar.org/)
+
+---
+<div align="center">
+  <br>
+  <p><em>"The intricate and enigmatic physical shapes of molecular proteins are fundamentally the stubborn locks of structural biology; we are computationally searching endlessly for the specific keys."</em></p>
+  <br>
+</div>
+>>>>>>> Stashed changes
