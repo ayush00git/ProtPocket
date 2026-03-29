@@ -56,36 +56,52 @@ func FetchDrugCoverage(uniprotID string) (int, []string, error) {
 		return 0, []string{}, nil
 	}
 
-	au := fmt.Sprintf("%s/activity.json?target_chembl_id=%s&molecule_max_phase=4&limit=100",
-		chemblDataBase, url.QueryEscape(tid))
-	abody, err := chemblGET(ctx, au)
-	if err != nil {
-		return -1, []string{}, nil
-	}
-	var alist chemblActivityList
-	if err := json.Unmarshal(abody, &alist); err != nil {
-		return -1, []string{}, nil
-	}
-	n := alist.PageMeta.TotalCount
-	if n == 0 {
-		return 0, []string{}, nil
-	}
-
+	// Paginate through activities to collect distinct approved drug names.
+	// We only need unique molecule names, so limit=500 per page is efficient.
 	seen := make(map[string]bool)
 	var names []string
-	for _, a := range alist.Activities {
-		pn := strings.TrimSpace(a.MoleculePrefName)
-		if pn == "" || seen[pn] {
-			continue
+	offset := 0
+	const pageSize = 500
+
+	for {
+		au := fmt.Sprintf("%s/activity.json?target_chembl_id=%s&molecule_max_phase=4&limit=%d&offset=%d",
+			chemblDataBase, url.QueryEscape(tid), pageSize, offset)
+		abody, err := chemblGET(ctx, au)
+		if err != nil {
+			break
 		}
-		seen[pn] = true
-		names = append(names, pn)
-		if len(names) >= 5 {
+		var alist chemblActivityList
+		if err := json.Unmarshal(abody, &alist); err != nil {
+			break
+		}
+		if len(alist.Activities) == 0 {
+			break
+		}
+
+		for _, a := range alist.Activities {
+			pn := strings.TrimSpace(a.MoleculePrefName)
+			if pn == "" || seen[pn] {
+				continue
+			}
+			seen[pn] = true
+			names = append(names, pn)
+		}
+
+		// Stop if we've fetched all rows or this was the last page
+		offset += len(alist.Activities)
+		if offset >= alist.PageMeta.TotalCount || len(alist.Activities) < pageSize {
 			break
 		}
 	}
 
-	return n, names, nil
+	// Drug count = number of distinct approved drugs, not activity rows
+	drugCount := len(seen)
+	// Keep only first 5 names for display
+	if len(names) > 5 {
+		names = names[:5]
+	}
+
+	return drugCount, names, nil
 }
 
 func chemblGET(ctx context.Context, rawURL string) ([]byte, error) {

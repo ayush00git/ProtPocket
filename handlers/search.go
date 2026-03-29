@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"sync"
 
 	"gofr.dev/pkg/gofr"
@@ -158,7 +159,7 @@ func buildComplexFromUniProt(uniprotID string) (*models.Complex, error) {
 
 	// Determine review status from UniProt entry type
 	reviewStatus := "unreviewed"
-	if uniEntry.EntryType == "Swiss-Prot" {
+	if strings.Contains(uniEntry.EntryType, "Swiss-Prot") {
 		reviewStatus = "reviewed"
 	}
 
