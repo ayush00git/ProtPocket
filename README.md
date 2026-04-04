@@ -49,19 +49,25 @@ For every protein, ProtPocket computes the disorder delta — the difference in 
 
 The detail page renders both structures in the Mol* 3D viewer, colored by per-residue pLDDT confidence. Blue regions are predicted with high confidence; red and orange regions are disordered.
 
+<img src="./public/img/Q55DI5.png" alt="Q55DI5" />
+
 ### Gap Score Ranking
 
 Every protein in the results is ranked by an original Gap Score that answers the question: how urgently does the world need a drug for this target? The score combines structural confidence, drug coverage from ChEMBL, WHO priority pathogen status, and the disorder delta bonus. Results are sorted descending — the most urgently undrugged, high-confidence target appears first. The undrugged targets dashboard provides a pre-ranked leaderboard of the highest Gap Score complexes across the 20 most studied species.
+<img src="./public/img/ranking.png" alt="Ranking" />
 
 ### Binding Site Detection with fpocket
 
 When a researcher requests pocket analysis for a specific complex, ProtPocket runs fpocket on both the monomer and the homodimer structure files. fpocket identifies surface cavities using Voronoi tessellation and alpha sphere algorithms, returning each pocket with a druggability score, volume in cubic Ångströms, and the residues lining it.
+<img src="./public/img/comparison.png" alt="Comparison" />
 
 By comparing the pocket lists from the monomer and dimer runs, ProtPocket identifies interface pockets — cavities that appear in the dimer but have no corresponding cavity in the monomer. These are pockets formed specifically by the coming together of two chains. They are cross-validated against the per-residue disorder delta: pockets lined by residues that gained structural confidence in the dimer are flagged as high-confidence interface pockets, the primary targets for PPI inhibitor programs.
+<img src="./public/img/pocket-analysis.png" alt="Pocket Analysis" />
 
 ### Fragment Suggestion from ChEMBL
 
 For each identified pocket, ProtPocket queries ChEMBL for small molecule fragments whose known binding pockets share geometric properties with the identified cavity — similar volume, similar hydrophobicity profile, similar charge distribution. The returned fragments are molecules that have been shown experimentally to bind structurally similar pockets in other proteins, providing a starting point for medicinal chemistry rather than an empty search space.
+<img src="./public/img/fragments.png" alt="Fragments" />
 
 ---
 
