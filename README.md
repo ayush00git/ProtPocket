@@ -45,7 +45,7 @@ For each matching protein, ProtPocket fires three concurrent requests: to AlphaF
 
 ### Disorder Delta and Structural Comparison
 
-For every protein, ProtPocket computes the disorder delta — the difference in average pLDDT confidence between the monomer and homodimer AlphaFold predictions. This single number captures the structural reveal: how much the protein gains in ordered, confident structure when it finds its binding partner. A disorder delta of +43 means the protein went from 50% structural confidence in isolation to 86% confidence in complex form — the functional shape was completely hidden in the monomer and emerged only in the dimer.
+For every protein, ProtPocket computes the disorder delta — the difference in average pLDDT confidence between the monomer and homodimer AlphaFold predictions. This single number captures the structural reveal: how much the protein gains in ordered, confident structure when it finds its binding partner. A disorder delta of +36 means the protein went from 50% structural confidence in isolation to 86% confidence in complex form — the functional shape was completely hidden in the monomer and emerged only in the dimer.
 
 The detail page renders both structures in the Mol* 3D viewer, colored by per-residue pLDDT confidence. Blue regions are predicted with high confidence; red and orange regions are disordered. Clicking the reveal button animates the transition from monomer to dimer side by side, making the structural gain immediately visible.
 
