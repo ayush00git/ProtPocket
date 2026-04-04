@@ -33,7 +33,7 @@ export function MoleculePicker({
         )}
       </div>
 
-      <div className="max-h-80 overflow-y-auto">
+      <div className="max-h-80 overflow-y-auto scrollbar-hide">
         {isLoading && (
           <div className="flex flex-col items-center gap-2 py-8">
             <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
