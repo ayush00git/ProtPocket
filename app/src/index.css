@@ -116,3 +116,12 @@
   color: var(--text-muted) !important;
 }
 
+/* ═══ Hide native scrollbar ═══ */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE/Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;             /* Chrome/Safari/Opera */
+}
+
