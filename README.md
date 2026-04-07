@@ -71,46 +71,6 @@ For each identified pocket, ProtPocket queries ChEMBL for small molecule fragmen
 
 ---
 
-## Technical Discovery
-
-During development, ProtPocket's team discovered an undocumented capability of the AlphaFold REST API that makes real-time complex data retrieval possible without bulk FTP download.
-
-When the project began, no public API endpoint existed to query AlphaFold homodimer predictions by UniProt ID. The team systematically tested every plausible endpoint pattern. The standard prediction endpoint returned monomers only. A dedicated complexes endpoint returned 404. The FTP bulk manifest directory had not yet been published. Direct queries with known numeric complex IDs worked, but obtaining those IDs required knowing them in advance.
-
-The breakthrough came with the AlphaFold search endpoint:
-
-```bash
-curl -s "https://alphafold.ebi.ac.uk/api/search?q=Q55DI5&type=complex"
-```
-
-This returns a `docs` array containing both the monomer and homodimer predictions for the queried accession in a single response, with an `isComplex` boolean field distinguishing them and `globalMetricValue` giving the average pLDDT for each:
-
-```json
-{
-  "docs": [
-    {
-      "entryId": "AF-Q55DI5-F1",
-      "isComplex": false,
-      "globalMetricValue": 50.56,
-      "oligomericState": "monomer"
-    },
-    {
-      "entryId": "AF-0000000066503175",
-      "isComplex": true,
-      "globalMetricValue": 86.06,
-      "oligomericState": "dimer",
-      "complexPredictionAccuracy_ipTM": 0.82
-    }
-  ]
-}
-```
-
-From this single HTTP call, disorder delta is computed directly: `86.06 - 50.56 = +35.50`. The numeric complex ID (`AF-0000000066503175`) is recovered for further queries. The `ipTM` interface confidence score — available only for complex entries — is surfaced as an additional metric.
-
-This behavior is not documented in the official AlphaFold API documentation. ProtPocket is the first tool to build on it, enabling live disorder delta computation for any protein with a homodimer prediction without downloading or parsing structure files. The full technical record is documented in [COMPLEX.md](./COMPLEX.md).
-
----
-
 ## The Gap Score
 
 The Gap Score is ProtPocket's original drug target prioritization algorithm. It answers one question: given everything known about this protein complex, how urgently does research need a drug for it?
@@ -127,15 +87,13 @@ Gap Score = pLDDT_norm × undrugged_factor × WHO_multiplier + disorder_bonus
 
 **`disorder_bonus`** adds `disorder_delta / 100` when the delta is positive. Proteins that undergo dramatic structural transformation in complex form represent the most scientifically novel entries in the March 2026 dataset. The bonus rewards them proportionally.
 
-A score above 1.5 indicates a high-confidence, undrugged target in a WHO priority pathogen with significant structural gain. The undrugged targets leaderboard routinely shows WHO pathogen proteins — murC from *Staphylococcus aureus*, ftsZ from *Mycobacterium tuberculosis* — scoring between 1.85 and 1.95. TP53, the most studied cancer protein, scores 0.85 because five approved drugs already target it; it is clinically important but not an urgent gap.
-
 ---
 
 ## Binding Site Detection
 
-ProtPocket's pocket analysis pipeline operates on homodimer structure files and identifies druggable cavities through three stages.
+ProtPocket's pocket analysis pipeline operates on monomer and homodimer structure files and identifies druggable cavities through three stages.
 
-In the first stage, fpocket is invoked as a subprocess on both the monomer and dimer PDB files, converted from AlphaFold's CIF format using Open Babel. fpocket uses a rolling sphere algorithm — a probe sphere of variable radius is rolled across the molecular surface, and positions where the sphere is significantly surrounded by protein atoms are identified as potential pockets. Each pocket is scored for druggability based on its volume, shape, and chemical environment.
+In the first stage, fpocket is invoked as a subprocess on both the monomer and dimer cif files. fpocket uses a rolling sphere algorithm — a probe sphere of variable radius is rolled across the molecular surface, and positions where the sphere is significantly surrounded by protein atoms are identified as potential pockets. Each pocket is scored for druggability based on its volume, shape, and chemical environment.
 
 In the second stage, the monomer and dimer pocket lists are compared geometrically. A pocket in the dimer that has no corresponding cavity within threshold distance in the monomer is identified as an interface pocket — it was created by the structural change induced by dimerization. Interface pockets are the primary targets of PPI inhibitor programs because a molecule binding there disrupts the protein-protein interaction itself rather than blocking a conventional enzymatic active site.
 
@@ -147,7 +105,7 @@ The Mol* viewer on the detail page highlights the identified pocket residues dir
 
 ## Data Sources
 
-**AlphaFold Database** (EMBL-EBI and Google DeepMind) provides all protein structure predictions. ProtPocket queries the search endpoint live for every request, recovering both monomer and homodimer predictions in a single call. For the two proteins in the curated dataset with confirmed homodimer structure files — EGFR and Q55DI5 — the complex CIF files are fetched directly from AlphaFold's file storage at their v1 versioned URLs. All other proteins use the monomer structure for visualization.
+**AlphaFold Database** (EMBL-EBI and Google DeepMind) provides all protein structure predictions. ProtPocket queries the search endpoint live for every request, recovering both monomer and homodimer predictions in a single call. 
 
 **UniProt** provides protein identity — gene names, organism, taxonomy ID, disease associations, and reviewed annotation status. Every protein in ProtPocket has a UniProt accession as its canonical identifier, and all cross-database lookups originate from it.
 
@@ -163,135 +121,6 @@ ProtPocket does not store or redistribute AlphaFold structure files. All structu
 
 ---
 
-## Architecture
-
-```
-app/                        React 19 + Vite frontend
-  src/
-    components/
-      complex/
-        viewer/             Mol* 3D viewer components
-        BindingSites.jsx    Pocket analysis UI
-      search/               Search bar and result cards
-      dashboard/            Undrugged targets leaderboard
-    pages/
-      ComplexDetailPage.jsx
-      SearchPage.jsx
-      DashboardPage.jsx
-
-handlers/                   GoFr route handlers
-  search.go                 GET /search
-  complex.go                GET /complex/{id}
-  binding_sites.go          GET /complex/{id}/binding-sites
-  undrugged.go              GET /undrugged
-  chembl.go                 GET /chembl
-
-services/
-  alphafold.go              AlphaFold search + complex data
-  chembl.go                 Drug coverage + fragment query
-  uniprot.go                Protein metadata
-  query_classifier.go       Query type detection
-
-scoring/
-  gap_score.go              Gap Score algorithm
-
-data/
-  hero_complexes.json       30 curated complexes (fallback)
-```
-
-**Backend:** Go with GoFr framework. Five HTTP routes. Concurrent goroutines for multi-API enrichment. In-memory caching for binding site results.
-
-**Frontend:** React 19 with Vite. Tailwind CSS. Mol* for 3D structure rendering. Framer Motion for the structural reveal animation.
-
-**Languages:** 59.7% JavaScript, 38.0% Go, 2.1% CSS.
-
----
-
-## Installation
-
-### Prerequisites
-
-- Go 1.21+
-- Node.js 18+
-- fpocket (`sudo apt-get install fpocket` on Debian/Ubuntu, or build from [source](https://github.com/Discngine/fpocket))
-- Open Babel (`sudo apt-get install openbabel`)
-
-### Backend
-
-```bash
-# Clone the repository
-git clone https://github.com/ayush00git/ProtPocket.git
-cd ProtPocket
-
-# Create environment file
-cp .env.example .env
-# No API keys required — all data sources are public
-
-# Run the backend (port 8000)
-go run main.go
-```
-
-### Frontend
-
-```bash
-cd app
-npm install
-npm run dev
-# Runs at localhost:5173
-# Proxies /api/* to localhost:8000
-```
-
----
-
-## API Reference
-
-All routes are served from the Go backend on port 8000. The frontend proxies `/api/*` → `localhost:8000/*`.
-
-### `GET /search?q={query}`
-
-Returns protein complexes matching the query, ranked by Gap Score.
-
-Query can be: protein name, gene symbol, disease name, organism name, UniProt accession, or AlphaFold ID. The backend classifies the query type and routes it to the appropriate UniProt search filter.
-
-**Response fields of note:**
-- `query_type` — how the query was classified (`gene_name`, `uniprot_id`, `disease`, `organism`, `free_text`)
-- `source` — `live` (real API calls) or `fallback` (hero JSON)
-- `results[].gap_score` — ranking score
-- `results[].disorder_delta` — structural gain from monomer to dimer
-- `results[].drug_count` — approved drugs from ChEMBL (−1 = unknown, 0 = undrugged)
-
-### `GET /complex/{id}`
-
-Returns full detail for one protein by UniProt ID or AlphaFold entry ID. Checks hero JSON first; falls back to live API enrichment.
-
-### `GET /complex/{id}/binding-sites`
-
-Runs fpocket on both monomer and dimer structures, identifies interface pockets, and returns ranked pockets with druggability scores and residue lists. Computationally intensive — results are cached per UniProt ID for the server session.
-
-### `GET /undrugged?filter={filter}&limit={limit}`
-
-Returns pre-ranked proteins from the hero dataset sorted by Gap Score. Filter options: `all`, `who_pathogen`, `human_disease`. Limit defaults to 25, max 50. Always served from hero JSON — no live API calls.
-
-### `GET /chembl?pocket_id={id}&volume={v}&hydrophobicity={h}&polarity={p}`
-
-Queries ChEMBL for fragment molecules matching the geometric profile of an identified pocket. Requires a prior binding-sites call for the same protein in the current server session.
-
----
-
-## Roadmap
-
-**Research Notebook** — persistent workspace for saving protein complexes, annotating them with researcher notes, comparing multiple targets side by side in a metric table, and exporting structured PDF reports. Backed by MongoDB. Detailed specification in [RESEARCH-NOTEBOOK.md](./RESEARCH-NOTEBOOK.md).
-
-**Intelligent Search Expansion** — the current query classifier handles gene names, UniProt IDs, disease terms, and organism names. Planned additions include pathway-level search (returning all proteins in a named biological pathway) and sequence similarity search (BLAST-style input of an amino acid sequence returning structurally similar proteins in the dataset).
-
-**Bulk Dataset Coverage** — ProtPocket currently computes Gap Scores and disorder deltas on demand for individual queries. The planned bulk pipeline would pre-compute these across the full 1.7 million homodimer dataset, store results in PostgreSQL, and make the entire collection searchable by any metric — creating a global drug target atlas from the March 2026 release.
-
-**Heterodimer Support** — the March 2026 AlphaFold release included monomer and homodimer predictions. Heterodimer predictions — complexes of two different proteins — are actively being computed by the AlphaFold consortium and will be added to the database in coming months. ProtPocket's architecture is designed to accommodate heterodimers when they become available through the same API pipeline.
-
-**AutoDock Vina Integration** — extending the binding site pipeline with full molecular docking, computing predicted binding energies (kcal/mol) and visualizing docked poses in the Mol* viewer.
-
----
-
 ## Citation
 
 If you use ProtPocket in research, please cite the AlphaFold Database and the March 2026 complex release:
@@ -303,7 +132,3 @@ If you use ProtPocket in research, please cite the AlphaFold Database and the Ma
 The technical discovery of the AlphaFold complex API pipeline is documented in [COMPLEX.md](./COMPLEX.md) and may be cited independently.
 
 ---
-
-## License
-
-MIT License. All data sources used by ProtPocket are freely available under open licenses — AlphaFold data under CC BY 4.0, ChEMBL and UniProt under CC BY-SA 4.0.
