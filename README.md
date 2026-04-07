@@ -111,7 +111,7 @@ The Mol* viewer on the detail page highlights the identified pocket residues dir
 
 **ChEMBL** (EMBL-EBI) provides drug-target association data. ProtPocket queries ChEMBL for approved drugs at Phase 4 clinical status and above targeting each protein. The resulting drug count feeds directly into the undrugged factor of the Gap Score. ChEMBL is also queried for fragment molecule suggestions matched to identified pocket geometries.
 
-**WHO Priority Pathogen List** (2024 edition) is hardcoded as a lookup table keyed by NCBI taxonomy ID. The list covers 19 bacterial and fungal pathogens designated as critical antimicrobial resistance threats and drives the 2× multiplier in the Gap Score.
+**WHO Priority Pathogen List** (2024 edition) is hardcoded as a lookup table keyed by NCBI taxonomy ID. The list covers 24 bacterial and fungal pathogens designated as critical antimicrobial resistance threats and drives the 2× multiplier in the Gap Score.
 
 **fpocket** runs locally as a subprocess. No external API is involved — structure files are downloaded, converted, analyzed, and the temporary files are deleted. fpocket is MIT licensed and freely available.
 
