@@ -69,6 +69,20 @@ By comparing the pocket lists from the monomer and dimer runs, ProtPocket identi
 For each identified pocket, ProtPocket queries ChEMBL for small molecule fragments whose known binding pockets share geometric properties with the identified cavity — similar volume, similar hydrophobicity profile, similar charge distribution. The returned fragments are molecules that have been shown experimentally to bind structurally similar pockets in other proteins, providing a starting point for medicinal chemistry rather than an empty search space.
 <img src="./public/img/fragments.png" alt="Fragments" />
 
+### Live Structure Docking (AutoDock Vina)
+
+Once fragments are suggested, the researcher can validate their fit directly in the browser via an integrated docking service powered by **AutoDock Vina** and **Open Babel**. Upon selecting a ChEMBL fragment, the backend:
+1. Converts the 1D SMILES string into a 3D ligand conformation using Open Babel.
+2. Prepares the AlphaFold receptor by converting it to the required PDBQT format.
+3. Automatically sets the docking search space bounding box explicitely over the fpocket-derived center of the cavity.
+4. Executes Vina in the background to calculate binding affinities.
+
+The results are asynchronously streamed back to the frontend. Binding affinity scores (in kcal/mol) and docked poses are displayed in the leaderboard:
+<img src="./public/img/dock-lead.png" alt="Docking Leaderboard" />
+
+In parallel, the resulting 3D ligand structures are loaded directly into the Mol* viewer to visually represent how the molecule is embedded within the pocket:
+<img src="./public/img/dock.png" alt="Docking Viewer" />
+
 ---
 
 ## The Gap Score
@@ -115,7 +129,9 @@ The Mol* viewer on the detail page highlights the identified pocket residues dir
 
 **fpocket** runs locally as a subprocess. No external API is involved — structure files are downloaded, converted, analyzed, and the temporary files are deleted. fpocket is MIT licensed and freely available.
 
-**Open Babel** handles all molecular format conversions between stages — CIF to PDB for fpocket input, and format interconversion for fragment structures.
+**AutoDock Vina** runs locally as a subprocess to process ligand binding simulations, calculating affinity values and generating 3D molecular poses explicitly mapped into the target pockets.
+
+**Open Babel** handles all molecular format conversions between stages — CIF to PDB for fpocket input, SMILES to 3D for ligand preparation, and format interconversion for fragment structures.
 
 ProtPocket does not store or redistribute AlphaFold structure files. All structure data is linked directly to EMBL-EBI's servers. All primary data sources are freely available under open licenses compatible with academic and commercial use.
 
