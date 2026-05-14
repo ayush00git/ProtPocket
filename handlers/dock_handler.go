@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/gin-gonic/gin"
+
 	"github.com/ProtPocket/models"
 	"github.com/ProtPocket/services"
 )
@@ -20,30 +22,16 @@ type dockPOSTBody struct {
 	ProteinPDBID   string `json:"protein_pdb_id"`
 }
 
-// DockHTTPMiddleware intercepts /dock and /dock/status so POST /dock can return HTTP 202 with a top-level job_id JSON body.
-func DockHTTPMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch {
-		case r.URL.Path == "/dock" && r.Method == http.MethodPost:
-			serveDockSubmit(w, r)
-		case r.URL.Path == "/dock/status" && r.Method == http.MethodGet:
-			serveDockStatus(w, r)
-		default:
-			next.ServeHTTP(w, r)
-		}
-	})
-}
-
-// serveDockSubmit validates the dock request body, enqueues a job, and responds with HTTP 202.
-func serveDockSubmit(w http.ResponseWriter, r *http.Request) {
-	if ct := r.Header.Get("Content-Type"); !strings.Contains(strings.ToLower(ct), "application/json") {
-		http.Error(w, `{"error":"Content-Type must be application/json"}`, http.StatusBadRequest)
+// DockSubmitHandler handles POST /dock — validates the request, enqueues a job, and responds HTTP 202.
+func DockSubmitHandler(c *gin.Context) {
+	if ct := c.GetHeader("Content-Type"); !strings.Contains(strings.ToLower(ct), "application/json") {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Content-Type must be application/json"})
 		return
 	}
 
 	var body dockPOSTBody
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		http.Error(w, fmt.Sprintf(`{"error":"invalid JSON: %v"}`, err), http.StatusBadRequest)
+	if err := json.NewDecoder(c.Request.Body).Decode(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("invalid JSON: %v", err)})
 		return
 	}
 
@@ -52,44 +40,40 @@ func serveDockSubmit(w http.ResponseWriter, r *http.Request) {
 		proteinPath = strings.TrimSpace(body.ProteinPDBID)
 	}
 	if body.PocketID <= 0 || strings.TrimSpace(body.LigandSMILES) == "" || proteinPath == "" {
-		http.Error(w, `{"error":"pocket_id, ligand_smiles, and protein_pdb_path (or protein_pdb_id) are required"}`, http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "pocket_id, ligand_smiles, and protein_pdb_path (or protein_pdb_id) are required"})
 		return
 	}
 
 	sourceType := strings.TrimSpace(body.SourceType)
 	if sourceType == "" {
-		sourceType = "dimer" // default for backwards compatibility
+		sourceType = "dimer"
 	}
 
 	pocket, ok := DefaultPocketStore.Get(sourceType, body.PocketID)
 	if !ok {
-		http.Error(w, fmt.Sprintf(`{"error":"pocket %s:%d not found"}`, sourceType, body.PocketID), http.StatusNotFound)
+		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("pocket %s:%d not found", sourceType, body.PocketID)})
 		return
 	}
 
 	lig := models.Fragment{SMILES: strings.TrimSpace(body.LigandSMILES)}
 	jobID := dockingJobs.Submit(pocket, lig, proteinPath)
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusAccepted)
-	_ = json.NewEncoder(w).Encode(map[string]string{"job_id": jobID})
+	c.JSON(http.StatusAccepted, gin.H{"job_id": jobID})
 }
 
-// serveDockStatus returns the current DockingResult for a job id query parameter.
-func serveDockStatus(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
+// DockStatusHandler handles GET /dock/status?id=<jobID>.
+func DockStatusHandler(c *gin.Context) {
+	id := c.Query("id")
 	if id == "" {
-		http.Error(w, `{"error":"query parameter id is required"}`, http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "query parameter 'id' is required"})
 		return
 	}
 
 	res, ok := dockingJobs.Get(id)
 	if !ok {
-		http.Error(w, `{"error":"job not found"}`, http.StatusNotFound)
+		c.JSON(http.StatusNotFound, gin.H{"error": "job not found"})
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(res)
+	c.JSON(http.StatusOK, res)
 }

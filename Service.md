@@ -122,12 +122,12 @@ This means a researcher can go from a protein name to an interactive 3D structur
 
 | Service | What It Replaces | Where It Runs |
 |---|---|---|
-| Multi-database aggregation | 3 manual database queries | GoFr backend |
-| Gap score computation | Manual research prioritization | GoFr backend |
-| Disorder delta analysis | Manual pLDDT comparison | GoFr backend |
-| Undrugged target identification | Manual ChEMBL cross-referencing | GoFr backend |
-| WHO pathogen contextualization | Manual list lookup | GoFr backend |
-| Research priority ranking | Alphabetical/relevance ordering | GoFr backend |
+| Multi-database aggregation | 3 manual database queries | gin backend |
+| Gap score computation | Manual research prioritization | gin backend |
+| Disorder delta analysis | Manual pLDDT comparison | gin backend |
+| Undrugged target identification | Manual ChEMBL cross-referencing | gin backend |
+| WHO pathogen contextualization | Manual list lookup | gin backend |
+| Research priority ranking | Alphabetical/relevance ordering | gin backend |
 | AI research brief generation | Literature review | Claude API|
 | Direct structure file access | Navigating AlphaFold manually | Frontend|
 

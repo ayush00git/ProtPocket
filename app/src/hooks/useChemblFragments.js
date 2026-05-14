@@ -50,8 +50,7 @@ export function useChemblFragments(pocketId, options = {}, apiBase = '/api') {
         throw new Error(`Failed to fetch fragments: HTTP ${res.status}`);
       }
       const json_data = await res.json();
-      const data = json_data["data"];
-      const list = (Array.isArray(data) ? data : []).map(normalizeFragment);
+      const list = (Array.isArray(json_data) ? json_data : []).map(normalizeFragment);
 
       cacheRef.current[cacheKey] = list;
       setFragments(list);

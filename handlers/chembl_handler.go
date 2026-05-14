@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 
-	"gofr.dev/pkg/gofr"
-	gofrHTTP "gofr.dev/pkg/gofr/http"
+	"github.com/gin-gonic/gin"
 
 	"github.com/ProtPocket/models"
 	"github.com/ProtPocket/services"
@@ -14,28 +14,31 @@ import (
 
 // ChemblHandler handles GET /chembl?pocket_id=<int> and optional volume, hydrophobicity, polarity query params
 // (from the binding-site table row) to drive ChEMBL fragment selection.
-func ChemblHandler(ctx *gofr.Context) (interface{}, error) {
-	idStr := ctx.Param("pocket_id")
+func ChemblHandler(c *gin.Context) {
+	idStr := c.Query("pocket_id")
 	if idStr == "" {
-		return nil, gofrHTTP.ErrorMissingParam{Params: []string{"pocket_id"}}
+		c.JSON(http.StatusBadRequest, gin.H{"error": "query parameter 'pocket_id' is required"})
+		return
 	}
 	pid, err := strconv.Atoi(idStr)
 	if err != nil {
-		return nil, gofrHTTP.ErrorInvalidParam{Params: []string{"pocket_id"}}
+		c.JSON(http.StatusBadRequest, gin.H{"error": "query parameter 'pocket_id' must be an integer"})
+		return
 	}
 
-	sourceType := ctx.Param("source_type")
+	sourceType := c.Query("source_type")
 	if sourceType == "" {
-		sourceType = "dimer" // default for backwards compatibility
+		sourceType = "dimer"
 	}
 
 	pocket, ok := DefaultPocketStore.Get(sourceType, pid)
 	if !ok {
-		return nil, gofrHTTP.ErrorEntityNotFound{Name: "pocket", Value: fmt.Sprintf("%d", pid)}
+		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("pocket %s:%d not found", sourceType, pid)})
+		return
 	}
 
-	pocket = applyPocketQueryOverrides(pocket, ctx.Param("volume"), ctx.Param("hydrophobicity"), ctx.Param("polarity"))
-	return services.FetchFragments(pocket), nil
+	pocket = applyPocketQueryOverrides(pocket, c.Query("volume"), c.Query("hydrophobicity"), c.Query("polarity"))
+	c.JSON(http.StatusOK, services.FetchFragments(pocket))
 }
 
 func applyPocketQueryOverrides(p models.Pocket, volStr, hydroStr, polStr string) models.Pocket {
