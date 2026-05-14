@@ -31,7 +31,7 @@ export function useBindingSites(complexId, enabled = false) {
         throw new Error(body.message || 'Failed to load binding sites');
       }
 
-      setData(body.data);
+      setData(body);
     } catch (err) {
       setError(err.message || 'An error occurred loading binding sites.');
     } finally {

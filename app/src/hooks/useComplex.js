@@ -34,8 +34,8 @@ export function useComplex(id) {
         }
 
         if (isMounted) {
-          complexCache[id] = body.data;
-          setComplex(body.data);
+          complexCache[id] = body;
+          setComplex(body);
         }
       } catch (err) {
         if (isMounted) {

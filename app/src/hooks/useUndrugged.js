@@ -26,7 +26,7 @@ export function useUndrugged(filter = 'all', limit = 25) {
         }
 
         if (isMounted) {
-          setData(body.data?.results || []);
+          setData(body.results || []);
         }
       } catch (err) {
         if (isMounted) {

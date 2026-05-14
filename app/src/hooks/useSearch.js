@@ -37,8 +37,8 @@ export function useSearch() {
         throw new Error(body.message || 'Search failed');
       }
 
-      const fetchedResults = body.data?.results || [];
-      const fetchedSource = body.data?.source || null;
+      const fetchedResults = body.results || [];
+      const fetchedSource = body.source || null;
 
       // Store in cache
       searchCache[trimmedQuery] = { results: fetchedResults, source: fetchedSource };

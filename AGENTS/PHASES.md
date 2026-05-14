@@ -14,7 +14,7 @@ The foundation everything else sits on.
 ---
 
 ## Phase 2 — Backend (Hour 2–10)
-GoFr (Go) service that is the brain of the app.
+gin (Go) service that is the brain of the app.
 
 **Three routes to build:**
 - `/search?q=` — takes a protein/disease name, hits AlphaFold + ChEMBL + UniProt concurrently, computes gap score, returns ranked list

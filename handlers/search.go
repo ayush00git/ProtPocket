@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"fmt"
+	"net/http"
 	"sort"
 	"strings"
 	"sync"
 
-	"gofr.dev/pkg/gofr"
+	"github.com/gin-gonic/gin"
 
 	"github.com/ProtPocket/data"
 	"github.com/ProtPocket/models"
@@ -22,52 +23,46 @@ import (
 // 2. If no hero matches, attempt live AlphaFold + ChEMBL + UniProt pipeline
 // 3. If live pipeline fails, return hero matches with source="fallback"
 // 4. Always return source field: "live" or "fallback"
-func SearchHandler(ctx *gofr.Context) (interface{}, error) {
-	query := ctx.Param("q")
+func SearchHandler(c *gin.Context) {
+	query := c.Query("q")
 	if query == "" {
-		return nil, fmt.Errorf("query parameter 'q' is required")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "query parameter 'q' is required"})
+		return
 	}
 
-	// Load hero complexes (always available — embedded in binary)
 	heroComplexes, err := data.LoadHeroComplexes()
 	if err != nil {
-		// This should never happen unless hero_complexes.json is malformed
-		return nil, fmt.Errorf("critical: failed to load hero complexes: %w", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("critical: failed to load hero complexes: %v", err)})
+		return
 	}
 
-	// Search hero complexes first
 	heroMatches := data.FindHeroByGeneOrProtein(query, heroComplexes)
-
-	// Attempt live search via UniProt
 	liveResults, liveErr := performLiveSearch(query)
 
 	if liveErr != nil {
-		// Live search API failed — use hero fallback
 		source := "fallback"
 		if len(heroMatches) == 0 {
 			source = "no_results"
 		}
 		sortByGapScore(heroMatches)
-		return models.SearchResult{
+		c.JSON(http.StatusOK, models.SearchResult{
 			Query:   query,
 			Count:   len(heroMatches),
 			Source:  source,
 			Results: heroMatches,
-		}, nil
+		})
+		return
 	}
 
-	// Live search succeeded (even if results are empty). Merge with any hero matches (deduplicated by uniprot_id)
-
-	// Live search succeeded (even if results are empty). Merge with any hero matches (deduplicated by uniprot_id)
 	merged := mergeResults(liveResults, heroMatches)
 	sortByGapScore(merged)
 
-	return models.SearchResult{
+	c.JSON(http.StatusOK, models.SearchResult{
 		Query:   query,
 		Count:   len(merged),
 		Source:  "live",
 		Results: merged,
-	}, nil
+	})
 }
 
 // performLiveSearch queries UniProt for matching protein IDs, then enriches

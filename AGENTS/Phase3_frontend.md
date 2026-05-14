@@ -6,7 +6,7 @@
 
 ## OVERVIEW
 
-Phase 3 builds the complete frontend shell of ProtPocket. By the end of this phase you will have four fully functional pages — Homepage, Search Results, Complex Detail, and Undrugged Dashboard — wired to the live GoFr backend running at `localhost:8080`. The Mol* 3D viewer is NOT part of this phase (that is Phase 4). A placeholder panel is used in its place.
+Phase 3 builds the complete frontend shell of ProtPocket. By the end of this phase you will have four fully functional pages — Homepage, Search Results, Complex Detail, and Undrugged Dashboard — wired to the live gin backend running at `localhost:8080`. The Mol* 3D viewer is NOT part of this phase (that is Phase 4). A placeholder panel is used in its place.
 
 ---
 
@@ -133,7 +133,7 @@ In `vite.config.js`, configure the dev server proxy so that requests to `/api/*`
 
 ## API ENDPOINTS
 
-All three hooks call these GoFr backend routes. Understand the shape before building.
+All three hooks call these gin backend routes. Understand the shape before building.
 
 ---
 
@@ -155,7 +155,7 @@ Called from `useSearch.js` when the user submits a query. The query can be a pro
 }
 ```
 
-GoFr wraps every response in a `data` key. Always read `response.data` before accessing any field.
+gin wraps every response in a `data` key. Always read `response.data` before accessing any field.
 
 `source` will be `"live"` (real APIs hit), `"fallback"` (hero JSON used), or `"no_results"`.
 

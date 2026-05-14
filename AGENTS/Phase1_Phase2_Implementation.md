@@ -21,7 +21,7 @@ Before writing any code, create this exact folder structure. Nothing more, nothi
 
 ```
 ProtPocket/
-├── backend/                  # Go / GoFr service
+├── backend/                  # Go / gin service
 │   ├── main.go
 │   ├── go.mod
 │   ├── go.sum
@@ -365,9 +365,9 @@ Before proceeding to Phase 2, confirm all of these:
 
 ---
 
-# PHASE 2 — BACKEND (GoFr API Service)
+# PHASE 2 — BACKEND (gin API Service)
 
-**Goal:** A running GoFr HTTP server with 3 routes that serve live data from AlphaFold, ChEMBL, and UniProt — with automatic fallback to hero_complexes.json if any external API fails.
+**Goal:** A running gin HTTP server with 3 routes that serve live data from AlphaFold, ChEMBL, and UniProt — with automatic fallback to hero_complexes.json if any external API fails.
 
 **Output:** A running server at `http://localhost:8080`
 
@@ -382,9 +382,9 @@ cd backend/
 go mod init github.com/ProtPocket/backend
 ```
 
-**Install GoFr:**
+**Install gin:**
 ```bash
-go get gofr.dev/pkg/gofr
+go get gin.dev/pkg/gin
 ```
 
 **Verify go.mod contains:**
@@ -394,7 +394,7 @@ module github.com/ProtPocket/backend
 go 1.21
 
 require (
-    gofr.dev v1.x.x
+    gin.dev v1.x.x
 )
 ```
 
@@ -954,7 +954,7 @@ import (
     "sort"
     "sync"
 
-    "gofr.dev/pkg/gofr"
+    "gin.dev/pkg/gin"
 
     "github.com/ProtPocket/backend/data"
     "github.com/ProtPocket/backend/models"
@@ -970,7 +970,7 @@ import (
 // 2. If no hero matches, attempt live AlphaFold + ChEMBL + UniProt pipeline
 // 3. If live pipeline fails, return hero matches with source="fallback"
 // 4. Always return source field: "live" or "fallback"
-func SearchHandler(ctx *gofr.Context) (interface{}, error) {
+func SearchHandler(ctx *gin.Context) (interface{}, error) {
     query := ctx.Param("q")
     if query == "" {
         return nil, fmt.Errorf("query parameter 'q' is required")
@@ -1188,7 +1188,7 @@ package handlers
 
 import (
     "fmt"
-    "gofr.dev/pkg/gofr"
+    "gin.dev/pkg/gin"
     "github.com/ProtPocket/backend/data"
 )
 
@@ -1197,7 +1197,7 @@ import (
 //
 // First looks in hero_complexes.json for instant response.
 // Falls back to live API fetch if not found in hero data.
-func ComplexDetailHandler(ctx *gofr.Context) (interface{}, error) {
+func ComplexDetailHandler(ctx *gin.Context) (interface{}, error) {
     id := ctx.PathParam("id")
     if id == "" {
         return nil, fmt.Errorf("path parameter 'id' is required")
@@ -1253,7 +1253,7 @@ Create `backend/handlers/undrugged.go`:
 package handlers
 
 import (
-    "gofr.dev/pkg/gofr"
+    "gin.dev/pkg/gin"
     "github.com/ProtPocket/backend/data"
     "github.com/ProtPocket/backend/models"
 )
@@ -1266,7 +1266,7 @@ import (
 //
 // Always uses hero_complexes.json — this endpoint never makes live API calls.
 // It is a pre-computed research prioritization tool.
-func UndruggedHandler(ctx *gofr.Context) (interface{}, error) {
+func UndruggedHandler(ctx *gin.Context) (interface{}, error) {
     limitStr := ctx.Param("limit")
     filter := ctx.Param("filter")
 
@@ -1322,12 +1322,12 @@ Create `backend/main.go`:
 package main
 
 import (
-    "gofr.dev/pkg/gofr"
+    "gin.dev/pkg/gin"
     "github.com/ProtPocket/backend/handlers"
 )
 
 func main() {
-    app := gofr.New()
+    app := gin.New()
 
     // Search proteins/diseases — returns ranked list by gap score
     // Example: GET /search?q=TP53

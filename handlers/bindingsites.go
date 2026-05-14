@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"fmt"
+	"net/http"
 	"sync"
 	"time"
 
-	"gofr.dev/pkg/gofr"
+	"github.com/gin-gonic/gin"
 
 	"github.com/ProtPocket/models"
 	"github.com/ProtPocket/services"
@@ -26,10 +27,11 @@ type bsCacheEntry struct {
 
 // BindingSiteHandler handles GET /complex/{id}/binding-sites
 // Runs the full pipeline: fpocket → pLDDT cross-reference → fragment suggestion
-func BindingSiteHandler(ctx *gofr.Context) (interface{}, error) {
-	id := ctx.PathParam("id")
+func BindingSiteHandler(c *gin.Context) {
+	id := c.Param("id")
 	if id == "" {
-		return nil, fmt.Errorf("path parameter 'id' is required")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "path parameter 'id' is required"})
+		return
 	}
 
 	uniprotID := normalizeToUniProtID(id)
@@ -50,10 +52,9 @@ func BindingSiteHandler(ctx *gofr.Context) (interface{}, error) {
 	// Step 1: Get complex data (CIF/PDB URLs, entry IDs)
 	afData, err := services.FetchComplexData(uniprotID)
 	if err != nil {
-		return nil, fmt.Errorf("binding sites: failed to fetch complex data: %w", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("binding sites: failed to fetch complex data: %v", err)})
+		return
 	}
-
-
 
 	// Step 2: Run fpocket concurrently on both structures
 	var wg sync.WaitGroup
@@ -67,7 +68,7 @@ func BindingSiteHandler(ctx *gofr.Context) (interface{}, error) {
 			pockets, complexErr = services.RunFpocket(afData.ComplexCifURL)
 		}()
 	}
-	
+
 	if afData.MonomerCifURL != "" {
 		wg.Add(1)
 		go func() {
@@ -78,10 +79,12 @@ func BindingSiteHandler(ctx *gofr.Context) (interface{}, error) {
 	wg.Wait()
 
 	if complexErr != nil {
-		return nil, fmt.Errorf("binding sites: complex fpocket failed: %w", complexErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("binding sites: complex fpocket failed: %v", complexErr)})
+		return
 	}
 	if monomerErr != nil {
-		return nil, fmt.Errorf("binding sites: monomer fpocket failed: %w", monomerErr)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("binding sites: monomer fpocket failed: %v", monomerErr)})
+		return
 	}
 
 	if len(pockets) == 0 && len(monomerPockets) == 0 {
@@ -95,7 +98,8 @@ func BindingSiteHandler(ctx *gofr.Context) (interface{}, error) {
 			MonomerPockets:      []models.Pocket{},
 		}
 		cacheResult(cacheKey, result)
-		return result, nil
+		c.JSON(http.StatusOK, result)
+		return
 	}
 
 	// Step 3: Fetch monomer JSON pLDDT data
@@ -210,7 +214,7 @@ func BindingSiteHandler(ctx *gofr.Context) (interface{}, error) {
 	result.Comparison = services.ComparePockets(monomerPockets, pockets, monomerPLDDT, targetChains)
 
 	cacheResult(cacheKey, result)
-	return result, nil
+	c.JSON(http.StatusOK, result)
 }
 
 func cacheResult(uniprotID string, result *models.BindingSiteResult) {
