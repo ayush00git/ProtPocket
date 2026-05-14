@@ -37,7 +37,9 @@ func FindHeroByGeneOrProtein(query string, complexes []models.Complex) []models.
 	for _, c := range complexes {
 		if strings.Contains(strings.ToLower(c.GeneName), queryLower) ||
 			strings.Contains(strings.ToLower(c.ProteinName), queryLower) ||
-			strings.Contains(strings.ToLower(c.Organism), queryLower) {
+			strings.Contains(strings.ToLower(c.Organism), queryLower) ||
+			strings.Contains(strings.ToLower(c.Category), queryLower) ||
+			strings.Contains(strings.ToLower(strings.Join(c.DiseaseAssoc, " ")), queryLower) {
 			results = append(results, c)
 		}
 	}

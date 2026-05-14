@@ -1,9 +1,9 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"sort"
 	"strings"
 	"sync"
 
@@ -15,14 +15,9 @@ import (
 	"github.com/ProtPocket/services"
 )
 
-// SearchHandler handles GET /search?q={query}
-// Query can be: protein name, gene name, disease name, or organism name.
-//
-// Behavior:
-// 1. Try to find matches in hero_complexes.json first (instant, no API calls)
-// 2. If no hero matches, attempt live AlphaFold + ChEMBL + UniProt pipeline
-// 3. If live pipeline fails, return hero matches with source="fallback"
-// 4. Always return source field: "live" or "fallback"
+// SearchHandler streams search results via Server-Sent Events.
+// Hero matches are sent immediately; live UniProt results are streamed
+// as each protein is enriched concurrently.
 func SearchHandler(c *gin.Context) {
 	query := c.Query("q")
 	if query == "" {
@@ -30,135 +25,200 @@ func SearchHandler(c *gin.Context) {
 		return
 	}
 
+	c.Header("Content-Type", "text/event-stream")
+	c.Header("Cache-Control", "no-cache")
+	c.Header("Connection", "keep-alive")
+	c.Header("X-Accel-Buffering", "no")
+
+	flusher, ok := c.Writer.(http.Flusher)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "streaming unsupported"})
+		return
+	}
+
+	ctx := c.Request.Context()
+
 	heroComplexes, err := data.LoadHeroComplexes()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("critical: failed to load hero complexes: %v", err)})
+		sseError(c.Writer, flusher, "failed to load hero complexes")
 		return
 	}
 
+	// Stream hero matches immediately — zero latency for known proteins
 	heroMatches := data.FindHeroByGeneOrProtein(query, heroComplexes)
-	liveResults, liveErr := performLiveSearch(query)
-
-	if liveErr != nil {
-		source := "fallback"
-		if len(heroMatches) == 0 {
-			source = "no_results"
+	for _, h := range heroMatches {
+		if ctx.Err() != nil {
+			return
 		}
-		sortByGapScore(heroMatches)
-		c.JSON(http.StatusOK, models.SearchResult{
-			Query:   query,
-			Count:   len(heroMatches),
-			Source:  source,
-			Results: heroMatches,
-		})
+		sseResult(c.Writer, flusher, h)
+	}
+
+	uniprotIDs, err := services.SearchUniProt(query, 50)
+	if err != nil || len(uniprotIDs) == 0 {
+		sseDone(c.Writer, flusher, "fallback")
 		return
 	}
 
-	merged := mergeResults(liveResults, heroMatches)
-	sortByGapScore(merged)
-
-	c.JSON(http.StatusOK, models.SearchResult{
-		Query:   query,
-		Count:   len(merged),
-		Source:  "live",
-		Results: merged,
-	})
-}
-
-// performLiveSearch queries UniProt for matching protein IDs, then enriches
-// each with AlphaFold and ChEMBL data concurrently.
-func performLiveSearch(query string) ([]models.Complex, error) {
-	// Get UniProt IDs matching the query (max 10 results)
-	uniprotIDs, err := services.SearchUniProt(query, 10)
-	if err != nil || len(uniprotIDs) == 0 {
-		return nil, err
+	// Deduplicate against already-streamed hero results
+	seen := make(map[string]bool)
+	for _, h := range heroMatches {
+		seen[h.UniprotID] = true
 	}
 
-	// Enrich each UniProt ID concurrently
-	var mu sync.Mutex
+	resultCh := make(chan models.Complex, len(uniprotIDs))
 	var wg sync.WaitGroup
-	var results []models.Complex
-	maxDrugCount := 0
 
 	for _, uid := range uniprotIDs {
+		if seen[uid] {
+			continue
+		}
+		seen[uid] = true
 		wg.Add(1)
-		go func(uniprotID string) {
+		go func(id string) {
 			defer wg.Done()
-
-			c, err := buildComplexFromUniProt(uniprotID)
-			if err != nil {
-				// Log but don't fail — one bad protein shouldn't kill the search
+			if ctx.Err() != nil {
 				return
 			}
-
-			mu.Lock()
-			if c.DrugCount > maxDrugCount {
-				maxDrugCount = c.DrugCount
+			complex, err := buildComplexForSearch(id)
+			if err != nil {
+				return
 			}
-			results = append(results, *c)
-			mu.Unlock()
+			complex.GapScore = scoring.ComputeGapScore(
+				complex.DimerPLDDTAvg,
+				complex.DrugCount,
+				1,
+				complex.IsWHOPathogen,
+				complex.DisorderDelta,
+			)
+			resultCh <- *complex
 		}(uid)
 	}
-	wg.Wait()
 
-	// Now compute gap scores (requires knowing maxDrugCount across the dataset)
-	for i := range results {
-		results[i].GapScore = scoring.ComputeGapScore(
-			results[i].DimerPLDDTAvg,
-			results[i].DrugCount,
-			maxDrugCount,
-			results[i].IsWHOPathogen,
-			results[i].DisorderDelta,
-		)
+	go func() {
+		wg.Wait()
+		close(resultCh)
+	}()
+
+	for result := range resultCh {
+		if ctx.Err() != nil {
+			return
+		}
+		sseResult(c.Writer, flusher, result)
 	}
 
-	return results, nil
+	sseDone(c.Writer, flusher, "live")
 }
 
-// buildComplexFromUniProt fetches all data for one UniProt ID from external APIs.
-// Returns nil + error if AlphaFold has no prediction for this protein.
-func buildComplexFromUniProt(uniprotID string) (*models.Complex, error) {
-	// Fetch UniProt metadata
+func sseResult(w http.ResponseWriter, f http.Flusher, c models.Complex) {
+	data, err := json.Marshal(c)
+	if err != nil {
+		return
+	}
+	fmt.Fprintf(w, "event: result\ndata: %s\n\n", data)
+	f.Flush()
+}
+
+func sseDone(w http.ResponseWriter, f http.Flusher, source string) {
+	fmt.Fprintf(w, "event: done\ndata: {\"source\":\"%s\"}\n\n", source)
+	f.Flush()
+}
+
+func sseError(w http.ResponseWriter, f http.Flusher, msg string) {
+	fmt.Fprintf(w, "event: error\ndata: {\"error\":\"%s\"}\n\n", msg)
+	f.Flush()
+}
+
+// buildComplexForSearch builds a Complex without fetching ChEMBL drug coverage.
+// DrugCount is set to -1 (unknown) so the gap score uses a neutral 0.5 factor.
+// Full drug data is fetched on demand by ComplexDetailHandler.
+func buildComplexForSearch(uniprotID string) (*models.Complex, error) {
 	uniEntry, err := services.FetchUniProtEntry(uniprotID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Fetch AlphaFold complex array data
+	if !strings.Contains(uniEntry.EntryType, "Swiss-Prot") {
+		return nil, fmt.Errorf("skipping unreviewed entry %s", uniprotID)
+	}
+
 	afData, err := services.FetchComplexData(uniprotID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Fetch drug coverage from ChEMBL (non-fatal if fails)
-	drugCount, drugNames, _ := services.FetchDrugCoverage(uniprotID)
-
-	// Determine WHO pathogen status
 	isWHO := scoring.IsWHOPathogen(uniEntry.Organism.TaxonID)
 
-	// Extract disease associations from UniProt comments
 	var diseases []string
 	for _, comment := range uniEntry.Comments {
-		if comment.CommentType == "DISEASE" {
-			if comment.Disease.DiseaseID != "" {
-				diseases = append(diseases, comment.Disease.DiseaseID)
-			}
+		if comment.CommentType == "DISEASE" && comment.Disease.DiseaseID != "" {
+			diseases = append(diseases, comment.Disease.DiseaseID)
 		}
 	}
 
-	// Extract gene name safely
 	geneName := ""
 	if len(uniEntry.Genes) > 0 {
 		geneName = uniEntry.Genes[0].GeneName.Value
 	}
 
-	// Determine review status from UniProt entry type
+	return &models.Complex{
+		UniprotID:        uniprotID,
+		ProteinName:      uniEntry.ProteinDescription.RecommendedName.FullName.Value,
+		GeneName:         geneName,
+		Organism:         uniEntry.Organism.ScientificName,
+		OrganismID:       uniEntry.Organism.TaxonID,
+		IsWHOPathogen:    isWHO,
+		DiseaseAssoc:     diseases,
+		MonomerPLDDTAvg:  afData.MonomerPLDDT,
+		DimerPLDDTAvg:    afData.DimerPLDDT,
+		DisorderDelta:    afData.DisorderDelta,
+		DrugCount:        -1,
+		KnownDrugNames:   nil,
+		MonomerStructURL: afData.MonomerCifURL,
+		ComplexStructURL: afData.ComplexCifURL,
+		Category:         inferCategory(isWHO, diseases, afData.DisorderDelta),
+		AlphafoldID:      afData.MonomerEntryID,
+		ReviewStatus:     "reviewed",
+	}, nil
+}
+
+// buildComplexFromUniProt builds a full Complex including ChEMBL drug coverage.
+// Used by ComplexDetailHandler where the extra latency is acceptable.
+func buildComplexFromUniProt(uniprotID string) (*models.Complex, error) {
+	uniEntry, err := services.FetchUniProtEntry(uniprotID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !strings.Contains(uniEntry.EntryType, "Swiss-Prot") {
+		return nil, fmt.Errorf("skipping unreviewed entry %s", uniprotID)
+	}
+
+	afData, err := services.FetchComplexData(uniprotID)
+	if err != nil {
+		return nil, err
+	}
+
+	drugCount, drugNames, _ := services.FetchDrugCoverage(uniprotID)
+	isWHO := scoring.IsWHOPathogen(uniEntry.Organism.TaxonID)
+
+	var diseases []string
+	for _, comment := range uniEntry.Comments {
+		if comment.CommentType == "DISEASE" && comment.Disease.DiseaseID != "" {
+			diseases = append(diseases, comment.Disease.DiseaseID)
+		}
+	}
+
+	geneName := ""
+	if len(uniEntry.Genes) > 0 {
+		geneName = uniEntry.Genes[0].GeneName.Value
+	}
+
 	reviewStatus := "unreviewed"
 	if strings.Contains(uniEntry.EntryType, "Swiss-Prot") {
 		reviewStatus = "reviewed"
 	}
 
-	c := &models.Complex{
+	return &models.Complex{
 		UniprotID:        uniprotID,
 		ProteinName:      uniEntry.ProteinDescription.RecommendedName.FullName.Value,
 		GeneName:         geneName,
@@ -177,13 +237,10 @@ func buildComplexFromUniProt(uniprotID string) (*models.Complex, error) {
 		DemoHighlight:    false,
 		AlphafoldID:      afData.MonomerEntryID,
 		ReviewStatus:     reviewStatus,
-		GapScore:         0.0, // Computed after all results gathered
-	}
-
-	return c, nil
+		GapScore:         0.0,
+	}, nil
 }
 
-// inferCategory determines the category of a complex based on its properties.
 func inferCategory(isWHO bool, diseases []string, disorderDelta float64) string {
 	if isWHO {
 		return "who_pathogen"
@@ -197,26 +254,3 @@ func inferCategory(isWHO bool, diseases []string, disorderDelta float64) string 
 	return "monomer_only"
 }
 
-// sortByGapScore sorts a slice of Complex in descending order of GapScore.
-func sortByGapScore(complexes []models.Complex) {
-	sort.Slice(complexes, func(i, j int) bool {
-		return complexes[i].GapScore > complexes[j].GapScore
-	})
-}
-
-// mergeResults combines live results and hero matches, deduplicating by UniprotID.
-// Live results take precedence over hero data for the same protein.
-func mergeResults(live, hero []models.Complex) []models.Complex {
-	seen := map[string]bool{}
-	var merged []models.Complex
-	for _, c := range live {
-		seen[c.UniprotID] = true
-		merged = append(merged, c)
-	}
-	for _, c := range hero {
-		if !seen[c.UniprotID] {
-			merged = append(merged, c)
-		}
-	}
-	return merged
-}

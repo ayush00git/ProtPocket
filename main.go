@@ -11,3 +11,5 @@ func main() {
 	routes.Register(r)
 	r.Run()
 }
+
+// claude --resume aaff8677-91bc-48ef-aae8-6ac73040677d
