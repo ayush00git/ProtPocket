@@ -89,8 +89,10 @@ func FetchUniProtEntry(uniprotID string) (*UniProtEntry, error) {
 // SearchUniProt searches UniProt by query string and returns the top UniProt IDs.
 // Used for the search-by-disease or search-by-protein-name feature.
 func SearchUniProt(query string, limit int) ([]string, error) {
-	encodedQuery := url.QueryEscape(query)
-	searchURL := fmt.Sprintf("%s/search?query=%s&format=json&size=%d&fields=accession,id", uniprotBaseURL, encodedQuery, limit)
+	// Restrict to Swiss-Prot (reviewed) only — TrEMBL entries are being deprecated
+	// by UniProt and have very low AlphaFold coverage. Sort by relevance score.
+	combined := fmt.Sprintf("(%s) AND (reviewed:true)", query)
+	searchURL := fmt.Sprintf("%s/search?query=%s&format=json&size=%d&fields=accession,id", uniprotBaseURL, url.QueryEscape(combined), limit)
 
 	resp, err := uniprotClient.Get(searchURL)
 	if err != nil {

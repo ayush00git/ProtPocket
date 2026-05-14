@@ -68,8 +68,9 @@ func SearchHandler(c *gin.Context) {
 // performLiveSearch queries UniProt for matching protein IDs, then enriches
 // each with AlphaFold and ChEMBL data concurrently.
 func performLiveSearch(query string) ([]models.Complex, error) {
-	// Get UniProt IDs matching the query (max 10 results)
-	uniprotIDs, err := services.SearchUniProt(query, 10)
+	// Fetch 50 Swiss-Prot IDs — AlphaFold covers ~50% of reviewed entries so
+	// we need the headroom to survive attrition and still surface enough results.
+	uniprotIDs, err := services.SearchUniProt(query, 50)
 	if err != nil || len(uniprotIDs) == 0 {
 		return nil, err
 	}
@@ -122,6 +123,11 @@ func buildComplexFromUniProt(uniprotID string) (*models.Complex, error) {
 	uniEntry, err := services.FetchUniProtEntry(uniprotID)
 	if err != nil {
 		return nil, err
+	}
+
+	// Hard-discard TrEMBL entries — only Swiss-Prot (reviewed) proteins are supported
+	if !strings.Contains(uniEntry.EntryType, "Swiss-Prot") {
+		return nil, fmt.Errorf("skipping unreviewed entry %s", uniprotID)
 	}
 
 	// Fetch AlphaFold complex array data
