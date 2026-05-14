@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Isomorphic Labs — Design System Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   ISOMORPHIC LABS — DESIGN SYSTEM REFERENCE
+   Reverse-engineered from isomorphiclabs.com
+   Use this file as a living style guide
+   ============================================================ */
+
+/* ============================================================
+   1. DESIGN TOKENS
+   ============================================================ */
+:root {
+  /* --- COLORS --- */
+  --color-bg-primary:    #0d0d0b;   /* Near-black, warm tint — hero/dark sections */
+  --color-bg-secondary:  #f5f2ec;   /* Warm cream — main page background */
+  --color-bg-surface:    #ffffff;   /* Pure white — card surfaces */
+  --color-bg-muted:      #edeae3;   /* Slightly darker cream — subtle section dividers */
+
+  --color-text-primary:  #0d0d0b;   /* Near-black — headings on light bg */
+  --color-text-inverse:  #f5f2ec;   /* Cream — text on dark bg */
+  --color-text-secondary:#4a4845;   /* Warm mid-gray — body copy */
+  --color-text-muted:    #8a8780;   /* Muted gray — captions, labels */
+
+  --color-accent-teal:   #1a5c52;   /* Deep teal — primary CTA, links */
+  --color-accent-teal-lt:#e2f0ee;   /* Light teal — hover fills */
+  --color-accent-amber:  #c8892a;   /* Warm amber — highlights, secondary accent */
+
+  --color-border-light:  rgba(13,13,11,0.10);  /* Subtle border on light bg */
+  --color-border-dark:   rgba(245,242,236,0.12); /* Subtle border on dark bg */
+
+  /* --- TYPOGRAPHY --- */
+  --font-display: 'Cormorant Garamond', Georgia, serif;  /* Headlines, pull quotes, hero */
+  --font-body:    'DM Sans', system-ui, sans-serif;      /* Nav, body, labels, CTAs */
+
+  /* --- TYPE SCALE --- */
+  --text-hero:    clamp(3.5rem, 9vw, 7.5rem);   /* "Solve all disease" */
+  --text-h1:      clamp(2.5rem, 5vw, 4rem);      /* Page titles */
+  --text-h2:      clamp(1.75rem, 3vw, 2.5rem);   /* Section headlines */
+  --text-h3:      clamp(1.1rem, 2vw, 1.35rem);   /* Sub-section titles */
+  --text-body-lg: 1.125rem;                       /* Lead paragraphs */
+  --text-body:    1rem;                           /* Standard body */
+  --text-small:   0.875rem;                       /* Nav, metadata */
+  --text-label:   0.6875rem;                      /* Eyebrow labels (all-caps) */
+
+  /* --- SPACING SCALE --- */
+  --space-1:  0.25rem;   /* 4px  */
+  --space-2:  0.5rem;    /* 8px  */
+  --space-3:  0.75rem;   /* 12px */
+  --space-4:  1rem;      /* 16px */
+  --space-6:  1.5rem;    /* 24px */
+  --space-8:  2rem;      /* 32px */
+  --space-12: 3rem;      /* 48px */
+  --space-16: 4rem;      /* 64px */
+  --space-24: 6rem;      /* 96px */
+  --space-32: 8rem;      /* 128px */
+
+  /* --- LAYOUT --- */
+  --max-width:        1280px;
+  --content-width:    780px;   /* Narrow readable column */
+  --gutter:           clamp(1.5rem, 5vw, 5rem);
+  --section-padding:  clamp(5rem, 10vw, 10rem);
+
+  /* --- MOTION --- */
+  --ease-out:   cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in:    cubic-bezier(0.64, 0, 0.78, 0);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast:   180ms;
+  --duration-base:   320ms;
+  --duration-slow:   600ms;
+  --duration-reveal: 900ms;
+
+  /* --- BORDER RADIUS --- */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+}
+
+
+/* ============================================================
+   2. RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+img, video { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+
+
+/* ============================================================
+   3. REFERENCE PAGE LAYOUT
+   ============================================================ */
+.ref-body {
+  background: #111110;
+  color: #f0ede6;
+  min-height: 100vh;
+  font-family: var(--font-body);
+}
+
+.ref-header {
+  position: sticky; top: 0; z-index: 100;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  background: rgba(17,17,16,0.92);
+  backdrop-filter: blur(12px);
+  padding: 0 var(--gutter);
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px;
+}
+.ref-logo {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: #f0ede6;
+}
+.ref-logo span { opacity: 0.45; font-size: 0.8rem; margin-left: 0.5rem; font-family: var(--font-body); }
+.ref-nav { display: flex; gap: 1.5rem; }
+.ref-nav a {
+  font-size: var(--text-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(240,237,230,0.5);
+  transition: color var(--duration-fast);
+}
+.ref-nav a:hover { color: #f0ede6; }
+
+.ref-main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 4rem var(--gutter) 6rem;
+  display: flex;
+  gap: 3rem;
+}
+
+/* Sidebar TOC */
+.ref-toc {
+  width: 200px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 80px;
+  align-self: flex-start;
+}
+.ref-toc-title {
+  font-size: var(--text-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(240,237,230,0.35);
+  margin-bottom: 1rem;
+}
+.ref-toc ul { list-style: none; }
+.ref-toc li + li { margin-top: 0.4rem; }
+.ref-toc a {
+  font-size: 0.8125rem;
+  color: rgba(240,237,230,0.45);
+  transition: color var(--duration-fast);
+  display: block;
+  padding: 0.2rem 0;
+  border-left: 1.5px solid transparent;
+  padding-left: 0.75rem;
+  transition: color var(--duration-fast), border-color var(--duration-fast);
+}
+.ref-toc a:hover { color: #f0ede6; border-left-color: rgba(240,237,230,0.3); }
+
+/* Content area */
+.ref-content { flex: 1; min-width: 0; }
+
+.ref-section {
+  margin-bottom: 5rem;
+  scroll-margin-top: 80px;
+}
+.ref-section-label {
+  font-size: var(--text-label);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(240,237,230,0.35);
+  margin-bottom: 0.5rem;
+}
+.ref-section-title {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 400;
+  color: #f0ede6;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+/* Code annotation */
+.ref-code {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.75rem;
+  color: rgba(240,237,230,0.4);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius-sm);
+  padding: 0.15rem 0.5rem;
+  display: inline-block;
+}
+.ref-note {
+  font-size: 0.8125rem;
+  color: rgba(240,237,230,0.4);
+  margin-top: 0.4rem;
+  line-height: 1.5;
+}
+
+
+/* ============================================================
+   4. COLOR TOKENS SECTION
+   ============================================================ */
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+}
+.color-swatch {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.color-swatch-block {
+  height: 72px;
+  width: 100%;
+}
+.color-swatch-info {
+  padding: 0.6rem 0.75rem;
+  background: rgba(255,255,255,0.04);
+}
+.color-swatch-name {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #f0ede6;
+  margin-bottom: 0.15rem;
+}
+.color-swatch-hex {
+  font-family: 'SF Mono', monospace;
+  font-size: 0.7rem;
+  color: rgba(240,237,230,0.4);
+}
+.color-swatch-var {
+  font-family: 'SF Mono', monospace;
+  font-size: 0.625rem;
+  color: rgba(240,237,230,0.25);
+  margin-top: 0.2rem;
+}
+
+
+/* ============================================================
+   5. TYPOGRAPHY SPECIMENS
+   ============================================================ */
+.type-specimen {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: baseline;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.type-meta-col {
+  width: 160px;
+  flex-shrink: 0;
+}
+.type-meta-role {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(240,237,230,0.35);
+  margin-bottom: 0.4rem;
+}
+.type-meta-val {
+  font-size: 0.7rem;
+  font-family: 'SF Mono', monospace;
+  color: rgba(240,237,230,0.25);
+  line-height: 1.6;
+}
+.type-preview-col { flex: 1; }
+
+/* Hero */
+.specimen-hero {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 300;
+  line-height: 1.0;
+  letter-spacing: -0.02em;
+  color: #f0ede6;
+}
+/* H1 page title */
+.specimen-h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: #f0ede6;
+}
+/* H2 section */
+.specimen-h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 2.5vw, 2rem);
+  font-weight: 400;
+  line-height: 1.2;
+  color: #f0ede6;
+}
+/* H3 */
+.specimen-h3 {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #f0ede6;
+}
+/* Eyebrow */
+.specimen-eyebrow {
+  font-family: var(--font-body);
+  font-size: var(--text-label);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(240,237,230,0.45);
+}
+/* Body */
+.specimen-body {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 300;
+  line-height: 1.75;
+  color: rgba(240,237,230,0.7);
+}
+/* Caption / small */
+.specimen-caption {
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: rgba(240,237,230,0.4);
+  line-height: 1.5;
+}
+/* Pull quote */
+.specimen-quote {
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.4;
+  color: rgba(240,237,230,0.85);
+}
+
+
+/* ============================================================
+   6. LIVE COMPONENTS
+   ============================================================ */
+
+/* --- NAVBAR --- */
+.iso-nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-8);
+  height: 64px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: rgba(13,13,11,0.95);
+  border-radius: var(--radius-md);
+}
+.iso-nav-logo {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--color-text-inverse);
+  letter-spacing: 0.01em;
+  margin-right: auto;
+}
+.iso-nav-links {
+  display: flex;
+  list-style: none;
+  gap: var(--space-8);
+}
+.iso-nav-links a {
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  color: rgba(245,242,236,0.65);
+  transition: color var(--duration-fast) var(--ease-out);
+  position: relative;
+}
+.iso-nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; left: 0; right: 0;
+  height: 1px;
+  background: var(--color-text-inverse);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--duration-base) var(--ease-out);
+}
+.iso-nav-links a:hover { color: var(--color-text-inverse); }
+.iso-nav-links a:hover::after { transform: scaleX(1); }
+.iso-nav-dropdown { position: relative; }
+.iso-nav-dropdown > a::before {
+  content: '▾';
+  margin-left: 4px;
+  font-size: 0.65em;
+  opacity: 0.5;
+}
+
+/* --- CTA BUTTONS --- */
+.btn-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+
+/* Primary: white/cream filled */
+.iso-btn-primary {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  padding: 0.75rem 1.75rem;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition:
+    background var(--duration-base) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out);
+}
+.iso-btn-primary:hover {
+  background: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+.iso-btn-primary:active { transform: translateY(0); }
+
+/* Secondary: ghost / outlined */
+.iso-btn-ghost {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  padding: 0.7rem 1.6rem;
+  background: transparent;
+  color: var(--color-text-inverse);
+  border: 1px solid rgba(245,242,236,0.25);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-base) var(--ease-out),
+    background var(--duration-base) var(--ease-out);
+}
+.iso-btn-ghost:hover {
+  border-color: rgba(245,242,236,0.6);
+  background: rgba(245,242,236,0.06);
+}
+
+/* Text link CTA (dark bg) */
+.iso-link-cta {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: 400;
+  color: var(--color-text-inverse);
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  position: relative;
+  cursor: pointer;
+}
+.iso-link-cta::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 0; right: 0;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.35;
+  transition: opacity var(--duration-base);
+}
+.iso-link-cta:hover::after { opacity: 1; }
+.iso-link-cta .arrow { transition: transform var(--duration-base) var(--ease-out); }
+.iso-link-cta:hover .arrow { transform: translateX(4px); }
+
+/* Text link CTA (light bg) */
+.iso-link-cta-dark {
+  color: var(--color-text-primary);
+}
+
+
+/* --- EYEBROW LABEL --- */
+.iso-eyebrow {
+  font-family: var(--font-body);
+  font-size: var(--text-label);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  display: block;
+  margin-bottom: var(--space-4);
+}
+/* On dark bg */
+.iso-eyebrow-inv {
+  color: rgba(245,242,236,0.4);
+}
+
+
+/* --- HERO SECTION --- */
+.iso-hero {
+  position: relative;
+  min-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: var(--space-24) var(--space-8) var(--space-16);
+  background: var(--color-bg-primary);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  color: var(--color-text-inverse);
+}
+/* Fake video bg with gradient */
+.iso-hero-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 30% 60%, rgba(26,92,82,0.25) 0%, transparent 60%),
+              radial-gradient(ellipse at 75% 30%, rgba(200,137,42,0.1) 0%, transparent 50%),
+              #0d0d0b;
+  z-index: 0;
+}
+/* Noise texture overlay */
+.iso-hero-bg::after {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.6;
+  pointer-events: none;
+}
+.iso-hero-content { position: relative; z-index: 1; }
+.iso-hero-headline {
+  font-family: var(--font-display);
+  font-size: var(--text-hero);
+  font-weight: 300;
+  line-height: 1.0;
+  letter-spacing: -0.02em;
+  color: var(--color-text-inverse);
+  margin-bottom: var(--space-8);
+  max-width: 700px;
+}
+.iso-hero-body {
+  font-family: var(--font-body);
+  font-size: var(--text-body-lg);
+  font-weight: 300;
+  color: rgba(245,242,236,0.6);
+  max-width: 480px;
+  line-height: 1.65;
+}
+
+
+/* --- FEATURE SPLIT (text + image 50/50) --- */
+.iso-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--color-border-light);
+}
+.iso-split-text {
+  padding: var(--space-16) var(--space-12);
+  background: var(--color-bg-surface);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.iso-split-text .iso-eyebrow { margin-bottom: var(--space-4); }
+.iso-split-headline {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-6);
+}
+.iso-split-body {
+  font-size: var(--text-body);
+  font-weight: 300;
+  line-height: 1.75;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-8);
+}
+.iso-split-image {
+  background: linear-gradient(135deg, #1a1a17 0%, #0d2420 100%);
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.iso-split-image-placeholder {
+  font-family: var(--font-display);
+  font-size: 4rem;
+  color: rgba(26,92,82,0.4);
+  letter-spacing: -0.02em;
+}
+
+
+/* --- THREE-UP CARD GRID --- */
+.iso-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--color-border-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.iso-card {
+  background: var(--color-bg-surface);
+  padding: var(--space-8) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  transition: background var(--duration-base) var(--ease-out);
+}
+.iso-card:hover { background: #fafaf8; }
+.iso-card .iso-eyebrow { margin-bottom: var(--space-3); }
+.iso-card-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  line-height: 1.3;
+  margin-bottom: var(--space-4);
+  flex: 1;
+}
+.iso-card-link {
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  color: var(--color-accent-teal);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: var(--space-4);
+  transition: gap var(--duration-base) var(--ease-out);
+}
+.iso-card:hover .iso-card-link { gap: 0.6rem; }
+
+
+/* --- PULL QUOTE --- */
+.iso-quote-section {
+  padding: var(--space-16) var(--space-8);
+  background: var(--color-bg-primary);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-inverse);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-6);
+}
+.iso-quote-mark {
+  font-family: var(--font-display);
+  font-size: 5rem;
+  line-height: 0.5;
+  color: rgba(245,242,236,0.12);
+  margin-bottom: -0.5rem;
+}
+.iso-quote-text {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.4;
+  color: var(--color-text-inverse);
+  max-width: 700px;
+}
+.iso-quote-attribution {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.iso-quote-avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+  color: rgba(255,255,255,0.4);
+}
+.iso-quote-name {
+  font-size: var(--text-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(245,242,236,0.5);
+}
+.iso-quote-title {
+  font-size: var(--text-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(245,242,236,0.25);
+}
+
+
+/* --- NEWS FEED CARD --- */
+.iso-news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+.iso-news-card {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out);
+}
+.iso-news-card:hover {
+  border-color: rgba(13,13,11,0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+}
+.iso-news-tag {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-muted);
+  color: var(--color-text-muted);
+}
+.iso-news-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--color-text-primary);
+  flex: 1;
+}
+.iso-news-date {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: auto;
+}
+
+
+/* --- SECTION WRAPPER (reusable) --- */
+.iso-section {
+  padding: var(--section-padding) var(--gutter);
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+.iso-section-header {
+  margin-bottom: var(--space-12);
+}
+.iso-section-header .iso-eyebrow {
+  margin-bottom: var(--space-3);
+}
+.iso-section-heading {
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  font-weight: 400;
+  color: var(--color-text-primary);
+  max-width: 560px;
+  line-height: 1.15;
+}
+
+
+/* --- FOOTER --- */
+.iso-footer {
+  background: var(--color-bg-primary);
+  color: var(--color-text-inverse);
+  padding: var(--space-16) var(--space-8) var(--space-8);
+  border-radius: var(--radius-lg);
+}
+.iso-footer-top {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  gap: var(--space-12);
+  margin-bottom: var(--space-12);
+  padding-bottom: var(--space-12);
+  border-bottom: 1px solid rgba(245,242,236,0.08);
+}
+.iso-footer-brand {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--color-text-inverse);
+  margin-bottom: var(--space-4);
+}
+.iso-footer-tagline {
+  font-size: var(--text-small);
+  color: rgba(245,242,236,0.35);
+  line-height: 1.6;
+  max-width: 240px;
+}
+.iso-footer-col-title {
+  font-size: var(--text-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(245,242,236,0.3);
+  margin-bottom: var(--space-4);
+}
+.iso-footer-links { list-style: none; display: flex; flex-direction: column; gap: var(--space-2); }
+.iso-footer-links a {
+  font-size: var(--text-small);
+  color: rgba(245,242,236,0.5);
+  transition: color var(--duration-fast);
+}
+.iso-footer-links a:hover { color: var(--color-text-inverse); }
+.iso-footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.iso-footer-copy {
+  font-size: 0.75rem;
+  color: rgba(245,242,236,0.2);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+
+/* ============================================================
+   7. SPACING SYSTEM VISUAL
+   ============================================================ */
+.spacing-grid {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.spacing-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.spacing-block {
+  background: rgba(26,92,82,0.5);
+  border: 1px solid rgba(26,92,82,0.8);
+  border-radius: 3px;
+  width: 40px;
+}
+.spacing-label {
+  font-size: 0.65rem;
+  font-family: 'SF Mono', monospace;
+  color: rgba(240,237,230,0.4);
+  text-align: center;
+}
+
+
+/* ============================================================
+   8. MOTION GUIDE
+   ============================================================ */
+.motion-demos { display: flex; flex-direction: column; gap: 1rem; }
+.motion-row {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius-md);
+}
+.motion-label-col { width: 160px; flex-shrink: 0; }
+.motion-name { font-size: 0.8125rem; font-weight: 500; color: #f0ede6; margin-bottom: 0.25rem; }
+.motion-spec { font-size: 0.7rem; font-family: 'SF Mono', monospace; color: rgba(240,237,230,0.3); }
+.motion-demo-area { flex: 1; }
+.motion-trigger {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-size: 0.75rem; color: rgba(240,237,230,0.5);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-pill);
+  padding: 0.4rem 1rem;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+.motion-trigger:hover { color: #f0ede6; background: rgba(255,255,255,0.08); }
+
+/* Animate targets */
+.anim-fade { opacity: 0; transition: opacity var(--duration-reveal) var(--ease-out); }
+.anim-fade.run { opacity: 1; }
+.anim-up { opacity: 0; transform: translateY(20px); transition: opacity var(--duration-reveal) var(--ease-out), transform var(--duration-reveal) var(--ease-out); }
+.anim-up.run { opacity: 1; transform: translateY(0); }
+.anim-scale { opacity: 0; transform: scale(0.96); transition: opacity var(--duration-slow) var(--ease-out), transform var(--duration-slow) var(--ease-out); }
+.anim-scale.run { opacity: 1; transform: scale(1); }
+.anim-pill {
+  display: inline-block;
+  padding: 0.4rem 1.25rem;
+  background: rgba(26,92,82,0.3);
+  border: 1px solid rgba(26,92,82,0.6);
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  color: rgba(240,237,230,0.7);
+}
+
+
+/* ============================================================
+   9. LAYOUT PATTERNS
+   ============================================================ */
+.layout-demo {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.layout-demo-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(240,237,230,0.3);
+  padding: 0.5rem 0.75rem;
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.layout-wireframe {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.wf-bar { height: 8px; background: rgba(255,255,255,0.1); border-radius: 3px; }
+.wf-block { background: rgba(255,255,255,0.06); border-radius: 4px; }
+.wf-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.wf-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; }
+
+
+/* ============================================================
+   10. UTILITY: COMPONENT PREVIEW WRAPPER
+   ============================================================ */
+.preview-box {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: var(--radius-md);
+  padding: 2rem;
+  margin-bottom: 0.75rem;
+}
+.preview-box-dark {
+  background: #0d0d0b;
+}
+.preview-box-light {
+  background: var(--color-bg-secondary);
+}
+.preview-caption {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: rgba(240,237,230,0.25);
+  margin-bottom: 1rem;
+}
+
+</style>
+</head>
+
+<body class="ref-body">
+
+  <!-- REFERENCE HEADER -->
+  <header class="ref-header">
+    <div class="ref-logo">
+      Isomorphic Labs
+      <span>Design System</span>
+    </div>
+    <nav class="ref-nav">
+      <a href="#tokens">Tokens</a>
+      <a href="#typography">Type</a>
+      <a href="#components">Components</a>
+      <a href="#layout">Layout</a>
+      <a href="#motion">Motion</a>
+    </nav>
+  </header>
+
+  <main class="ref-main">
+
+    <!-- SIDEBAR -->
+    <aside class="ref-toc">
+      <p class="ref-toc-title">Contents</p>
+      <ul>
+        <li><a href="#tokens">1. Design tokens</a></li>
+        <li><a href="#colors">2. Color system</a></li>
+        <li><a href="#typography">3. Typography</a></li>
+        <li><a href="#spacing">4. Spacing</a></li>
+        <li><a href="#components">5. Components</a></li>
+        <li><a href="#nav">→ Nav</a></li>
+        <li><a href="#buttons">→ Buttons</a></li>
+        <li><a href="#hero">→ Hero</a></li>
+        <li><a href="#split">→ Feature split</a></li>
+        <li><a href="#cards">→ Card grid</a></li>
+        <li><a href="#quote">→ Pull quote</a></li>
+        <li><a href="#news">→ News feed</a></li>
+        <li><a href="#footer">→ Footer</a></li>
+        <li><a href="#layout">6. Layout patterns</a></li>
+        <li><a href="#motion">7. Motion guide</a></li>
+        <li><a href="#usage">8. Implementation notes</a></li>
+      </ul>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="ref-content">
+
+      <!-- INTRO -->
+      <div class="ref-section" id="tokens">
+        <p class="ref-section-label">Overview</p>
+        <h1 class="ref-section-title">Design System</h1>
+        <p style="font-size: 0.9375rem; color: rgba(240,237,230,0.55); line-height: 1.7; max-width: 580px; margin-bottom: 1.5rem;">
+          Reverse-engineered from <strong style="color: rgba(240,237,230,0.8); font-weight:400;">isomorphiclabs.com</strong>. 
+          This file contains every token, component, and pattern you need to build a site with the same aesthetic. 
+          Paste the CSS variables block into your project root. All components below are live and copy-ready.
+        </p>
+
+        <!-- Tokens code block -->
+        <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-md); overflow: hidden;">
+          <div style="padding: 0.6rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 0.7rem; font-family: 'SF Mono', monospace; color: rgba(240,237,230,0.3);">:root — design-tokens.css</div>
+          <pre style="padding: 1.25rem 1rem; font-size: 0.75rem; font-family: 'SF Mono', monospace; color: rgba(240,237,230,0.65); overflow-x: auto; line-height: 1.8;"><code><span style="color:rgba(240,237,230,0.3)">/* Colors */</span>
+--color-bg-primary:    #0d0d0b;
+--color-bg-secondary:  #f5f2ec;
+--color-bg-surface:    #ffffff;
+--color-text-primary:  #0d0d0b;
+--color-text-inverse:  #f5f2ec;
+--color-text-secondary:#4a4845;
+--color-text-muted:    #8a8780;
+--color-accent-teal:   #1a5c52;
+--color-accent-amber:  #c8892a;
+
+<span style="color:rgba(240,237,230,0.3)">/* Fonts */</span>
+--font-display: 'Cormorant Garamond', Georgia, serif;
+--font-body:    'DM Sans', system-ui, sans-serif;
+
+<span style="color:rgba(240,237,230,0.3)">/* Type scale */</span>
+--text-hero:   clamp(3.5rem, 9vw, 7.5rem);
+--text-h1:     clamp(2.5rem, 5vw, 4rem);
+--text-h2:     clamp(1.75rem, 3vw, 2.5rem);
+--text-label:  0.6875rem; <span style="color:rgba(240,237,230,0.3)">/* eyebrows */</span>
+
+<span style="color:rgba(240,237,230,0.3)">/* Motion */</span>
+--ease-out:      cubic-bezier(0.22, 1, 0.36, 1);
+--duration-base: 320ms;
+--duration-reveal: 900ms;</code></pre>
+        </div>
+      </div>
+
+
+      <!-- COLORS -->
+      <div class="ref-section" id="colors">
+        <p class="ref-section-label">Section 02</p>
+        <h2 class="ref-section-title">Color System</h2>
+
+        <p class="ref-note" style="margin-bottom: 1.25rem;">The palette is intentionally near-monochrome. Dark sections use <code class="ref-code">#0d0d0b</code> (warm near-black). Light sections use <code class="ref-code">#f5f2ec</code> (warm cream — NOT pure white). This warm undertone is the key differentiator from cold tech palettes.</p>
+
+        <div class="color-grid">
+          <div class="color-swatch">
+            <div class="color-swatch-block" style="background:#0d0d0b;"></div>
+            <div class="color-swatch-info">
+              <div class="color-swatch-name">Near-black</div>
+              <div class="color-swatch-hex">#0d0d0b</div>
+              <div class="color-swatch-var">--color-bg-primary</div>
+            </div>
+          </div>
+          <div class="color-swatch">
+            <div class="color-swatch-block" style="background:#f5f2ec; border-bottom: 1px solid rgba(0,0,0,0.06);"></div>
+            <div class="color-swatch-info">
+              <div class="color-swatch-name">Warm cream</div>
+              <div class="color-swatch-hex">#f5f2ec</div>
+              <div class="color-swatch-var">--color-bg-secondary</div>
+            </div>
+          </div>
+          <div class="color-swatch">
+            <div class="color-swatch-block" style="background:#edeae3; border-bottom: 1px solid rgba(0,0,0,0.06);"></div>
+            <div class="color-swatch-info">
+              <div class="color-swatch-name">Muted cream</div>
+              <div class="color-swatch-hex">#edeae3</div>
+              <div class="color-swatch-var">--color-bg-muted</div>
+            </div>
+          </div>
+          <div class="color-swatch">
+            <div class="color-swatch-block" style="background:#4a4845;"></div>
+            <div class="color-swatch-info">
+              <div class="color-swatch-name">Body text</div>
+              <div class="color-swatch-hex">#4a4845</div>
+              <div class="color-swatch-var">--color-text-secondary</div>
+            </div>
+          </div>
+          <div class="color-swatch">
+            <div class="color-swatch-block" style="background:#8a8780;"></div>
+            <div class="color-swatch-info">
+              <div class="color-swatch-name">Muted text</div>
+              <div class="color-swatch-hex">#8a8780</div>
+              <div class="color-swatch-var">--color-text-muted</div>
+            </div>
+          </div>
+          <div class="color-swatch">
+            <div class="color-swatch-block" style="background:#1a5c52;"></div>
+            <div class="color-swatch-info">
+              <div class="color-swatch-name">Teal (CTA)</div>
+              <div class="color-swatch-hex">#1a5c52</div>
+              <div class="color-swatch-var">--color-accent-teal</div>
+            </div>
+          </div>
+          <div class="color-swatch">
+            <div class="color-swatch-block" style="background:#e2f0ee; border-bottom: 1px solid rgba(0,0,0,0.06);"></div>
+            <div class="color-swatch-info">
+              <div class="color-swatch-name">Teal light</div>
+              <div class="color-swatch-hex">#e2f0ee</div>
+              <div class="color-swatch-var">--color-accent-teal-lt</div>
+            </div>
+          </div>
+          <div class="color-swatch">
+            <div class="color-swatch-block" style="background:#c8892a;"></div>
+            <div class="color-swatch-info">
+              <div class="color-swatch-name">Amber</div>
+              <div class="color-swatch-hex">#c8892a</div>
+              <div class="color-swatch-var">--color-accent-amber</div>
+            </div>
+          </div>
+        </div>
+
+        <p class="ref-note" style="margin-top: 1rem;">Usage rule: teal is used almost exclusively for link underlines and CTA text. Amber appears rarely — awards, highlights. Never use both on the same element.</p>
+      </div>
+
+
+      <!-- TYPOGRAPHY -->
+      <div class="ref-section" id="typography">
+        <p class="ref-section-label">Section 03</p>
+        <h2 class="ref-section-title">Typography</h2>
+        <p class="ref-note" style="margin-bottom: 1.5rem;">
+          Two-font system. 
+          <code class="ref-code">Cormorant Garamond</code> — editorial serif, weight 300–400, for all headlines and pull quotes. 
+          <code class="ref-code">DM Sans</code> — clean geometric sans, weight 300–500, for all UI, body, nav, labels. 
+          Load both from Google Fonts.
+        </p>
+
+        <div class="type-specimen">
+          <div class="type-meta-col">
+            <div class="type-meta-role">Hero headline</div>
+            <div class="type-meta-val">Cormorant Garamond<br>wt: 300<br>size: clamp(3.5rem, 9vw, 7.5rem)<br>ls: -0.02em<br>lh: 1.0</div>
+          </div>
+          <div class="type-preview-col">
+            <div class="specimen-hero">Solve<br>all disease</div>
+          </div>
+        </div>
+
+        <div class="type-specimen">
+          <div class="type-meta-col">
+            <div class="type-meta-role">Page title / H1</div>
+            <div class="type-meta-val">Cormorant Garamond<br>wt: 400<br>size: clamp(2.5rem, 5vw, 4rem)<br>ls: -0.01em<br>lh: 1.1</div>
+          </div>
+          <div class="type-preview-col">
+            <div class="specimen-h1">Meet the people<br>leading Iso</div>
+          </div>
+        </div>
+
+        <div class="type-specimen">
+          <div class="type-meta-col">
+            <div class="type-meta-role">Section headline / H2</div>
+            <div class="type-meta-val">Cormorant Garamond<br>wt: 400<br>size: clamp(1.75rem, 3vw, 2.5rem)<br>lh: 1.2</div>
+          </div>
+          <div class="type-preview-col">
+            <div class="specimen-h2">We're using machine learning<br>to transform drug discovery.</div>
+          </div>
+        </div>
+
+        <div class="type-specimen">
+          <div class="type-meta-col">
+            <div class="type-meta-role">Pull quote</div>
+            <div class="type-meta-val">Cormorant Garamond<br>wt: 300, italic<br>size: clamp(1.1rem, 2vw, 1.5rem)<br>lh: 1.4</div>
+          </div>
+          <div class="type-preview-col">
+            <div class="specimen-quote">"I believe there is no more important application for AI than helping to improve human health."</div>
+          </div>
+        </div>
+
+        <div class="type-specimen">
+          <div class="type-meta-col">
+            <div class="type-meta-role">Eyebrow label</div>
+            <div class="type-meta-val">DM Sans<br>wt: 500<br>size: 0.6875rem<br>ls: 0.12em<br>UPPERCASE</div>
+          </div>
+          <div class="type-preview-col">
+            <div class="specimen-eyebrow">OUR HERITAGE · OUR GOAL · OUR TECH</div>
+          </div>
+        </div>
+
+        <div class="type-specimen">
+          <div class="type-meta-col">
+            <div class="type-meta-role">Body / lead paragraph</div>
+            <div class="type-meta-val">DM Sans<br>wt: 300<br>size: 1rem–1.125rem<br>lh: 1.75</div>
+          </div>
+          <div class="type-preview-col">
+            <div class="specimen-body">Our interdisciplinary team of drug discovery experts and machine learning specialists has built powerful new predictive and generative AI models that accelerate scientific discovery at digital speed.</div>
+          </div>
+        </div>
+
+        <div class="type-specimen">
+          <div class="type-meta-col">
+            <div class="type-meta-role">Caption / metadata</div>
+            <div class="type-meta-val">DM Sans<br>wt: 400<br>size: 0.8125rem<br>color: --text-muted</div>
+          </div>
+          <div class="type-preview-col">
+            <div class="specimen-caption">SIR DEMIS HASSABIS · FOUNDER AND CEO · 18.02.25</div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- SPACING -->
+      <div class="ref-section" id="spacing">
+        <p class="ref-section-label">Section 04</p>
+        <h2 class="ref-section-title">Spacing System</h2>
+        <p class="ref-note" style="margin-bottom: 1.5rem;">4px base unit. Section padding uses <code class="ref-code">clamp()</code> for fluid scaling. Component internals use fixed px increments.</p>
+
+        <div class="spacing-grid">
+          <div class="spacing-item">
+            <div class="spacing-block" style="height: 4px;"></div>
+            <div class="spacing-label">4px<br>--space-1</div>
+          </div>
+          <div class="spacing-item">
+            <div class="spacing-block" style="height: 8px;"></div>
+            <div class="spacing-label">8px<br>--space-2</div>
+          </div>
+          <div class="spacing-item">
+            <div class="spacing-block" style="height: 12px;"></div>
+            <div class="spacing-label">12px<br>--space-3</div>
+          </div>
+          <div class="spacing-item">
+            <div class="spacing-block" style="height: 16px;"></div>
+            <div class="spacing-label">16px<br>--space-4</div>
+          </div>
+          <div class="spacing-item">
+            <div class="spacing-block" style="height: 24px;"></div>
+            <div class="spacing-label">24px<br>--space-6</div>
+          </div>
+          <div class="spacing-item">
+            <div class="spacing-block" style="height: 32px;"></div>
+            <div class="spacing-label">32px<br>--space-8</div>
+          </div>
+          <div class="spacing-item">
+            <div class="spacing-block" style="height: 48px;"></div>
+            <div class="spacing-label">48px<br>--space-12</div>
+          </div>
+          <div class="spacing-item">
+            <div class="spacing-block" style="height: 64px;"></div>
+            <div class="spacing-label">64px<br>--space-16</div>
+          </div>
+          <div class="spacing-item">
+            <div class="spacing-block" style="height: 96px;"></div>
+            <div class="spacing-label">96px<br>--space-24</div>
+          </div>
+          <div class="spacing-item">
+            <div class="spacing-block" style="height: 128px;"></div>
+            <div class="spacing-label">128px<br>--space-32</div>
+          </div>
+        </div>
+
+        <p class="ref-note" style="margin-top: 1.25rem;">Section vertical padding: <code class="ref-code">clamp(5rem, 10vw, 10rem)</code> — generous breathing room is a core aesthetic choice. Max content width: <code class="ref-code">1280px</code>. Readable column: <code class="ref-code">780px</code>.</p>
+      </div>
+
+
+      <!-- COMPONENTS -->
+      <div class="ref-section" id="components">
+        <p class="ref-section-label">Section 05</p>
+        <h2 class="ref-section-title">Components</h2>
+      </div>
+
+      <!-- NAV -->
+      <div class="ref-section" id="nav" style="margin-top: -3rem;">
+        <p class="ref-section-label">Component — navigation</p>
+        <h3 style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 400; color: #f0ede6; margin-bottom: 1rem;">Navbar</h3>
+
+        <div class="preview-box preview-box-dark" style="padding: 1rem 0;">
+          <nav class="iso-nav">
+            <div class="iso-nav-logo">Isomorphic Labs</div>
+            <ul class="iso-nav-links">
+              <li><a href="#">Our Team</a></li>
+              <li><a href="#">Our Tech</a></li>
+              <li><a href="#">Partnerships</a></li>
+              <li class="iso-nav-dropdown"><a href="#">Careers</a></li>
+              <li><a href="#">News</a></li>
+            </ul>
+          </nav>
+        </div>
+        <p class="ref-note">Transparent on hero, solid on scroll. <code class="ref-code">backdrop-filter: blur(12px)</code>. Logo uses display serif, links use body sans at 0.875rem. Link hover: underline scaleX animation, origin left.</p>
+      </div>
+
+      <!-- BUTTONS -->
+      <div class="ref-section" id="buttons" style="margin-top: -3rem;">
+        <p class="ref-section-label">Component — CTAs</p>
+        <h3 style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 400; color: #f0ede6; margin-bottom: 1rem;">Buttons &amp; Links</h3>
+
+        <p class="preview-caption">On dark background</p>
+        <div class="preview-box preview-box-dark">
+          <div class="btn-row">
+            <button class="iso-btn-primary">work with us</button>
+            <button class="iso-btn-ghost">our tech</button>
+            <a class="iso-link-cta" href="#">view all <span class="arrow">→</span></a>
+          </div>
+        </div>
+
+        <p class="ref-note">Primary CTA: cream pill on dark bg. Ghost: outlined pill. Text CTA: lowercase, underline on hover. Arrow slides right 4px on hover. All use <code class="ref-code">border-radius: 999px</code> (pill). Font weight 400–500 only — never bold.</p>
+      </div>
+
+      <!-- HERO -->
+      <div class="ref-section" id="hero" style="margin-top: -3rem;">
+        <p class="ref-section-label">Component — hero section</p>
+        <h3 style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 400; color: #f0ede6; margin-bottom: 1rem;">Hero</h3>
+
+        <div class="iso-hero" style="min-height: 420px;">
+          <div class="iso-hero-bg"></div>
+          <div class="iso-hero-content">
+            <p class="iso-eyebrow-inv" style="font-family: var(--font-body); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(245,242,236,0.4); margin-bottom: 1rem;">Drug discovery · AI-first</p>
+            <h1 class="iso-hero-headline">Solve<br>all disease</h1>
+            <p class="iso-hero-body">We're entering a new era of drug discovery — one where frontier AI can unlock deeper scientific insights, faster breakthroughs, and life-changing medicines.</p>
+            <div style="margin-top: 2rem;">
+              <button class="iso-btn-primary">work with us</button>
+            </div>
+          </div>
+        </div>
+        <p class="ref-note">Background: real site uses a looping <code class="ref-code">.webm</code> video. Simulate with a dark radial gradient + noise texture. Headline: Cormorant Garamond 300, no forced line-break at smaller viewports. Body copy: DM Sans 300 at 60% opacity.</p>
+      </div>
+
+      <!-- FEATURE SPLIT -->
+      <div class="ref-section" id="split" style="margin-top: -3rem;">
+        <p class="ref-section-label">Component — feature split</p>
+        <h3 style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 400; color: #f0ede6; margin-bottom: 1rem;">50/50 Feature Section</h3>
+
+        <div class="iso-split">
+          <div class="iso-split-text">
+            <span class="iso-eyebrow">Our Heritage</span>
+            <h2 class="iso-split-headline">AlphaFold broke new ground.<br>Iso has built on it.</h2>
+            <p class="iso-split-body">Isomorphic Labs was launched from DeepMind, and many of our team contributed to the creation of the groundbreaking AlphaFold system.</p>
+            <a class="iso-link-cta iso-link-cta-dark" href="#">our tech <span class="arrow">→</span></a>
+          </div>
+          <div class="iso-split-image">
+            <div class="iso-split-image-placeholder">α</div>
+          </div>
+        </div>
+        <p class="ref-note">Grid: <code class="ref-code">grid-template-columns: 1fr 1fr</code>. No gap — sections abut. Collapse to single column below 640px. Image side: full-bleed photography or rendered molecule. Alternate left/right placement between sections for visual rhythm.</p>
+      </div>
+
+      <!-- THREE-UP CARDS -->
+      <div class="ref-section" id="cards" style="margin-top: -3rem;">
+        <p class="ref-section-label">Component — card grid</p>
+        <h3 style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 400; color: #f0ede6; margin-bottom: 1rem;">Three-up Card Grid</h3>
+
+        <div class="iso-card-grid">
+          <div class="iso-card">
+            <span class="iso-eyebrow">Our Leadership</span>
+            <p class="iso-card-title">Meet the Isos powering our progress.</p>
+            <a class="iso-card-link" href="#">Our Team →</a>
+          </div>
+          <div class="iso-card">
+            <span class="iso-eyebrow">Our Culture</span>
+            <p class="iso-card-title">Advance your career at a company shaping the future.</p>
+            <a class="iso-card-link" href="#">Life at Iso →</a>
+          </div>
+          <div class="iso-card">
+            <span class="iso-eyebrow">Our Heritage</span>
+            <p class="iso-card-title">AlphaFold broke new ground. Iso has built on it.</p>
+            <a class="iso-card-link" href="#">Our Tech →</a>
+          </div>
+        </div>
+        <p class="ref-note">White bg with 1px gap between cells (set on the grid parent, cells use same bg as fill). Eyebrow + display serif headline + teal text link. Card link arrow shifts right on parent hover.</p>
+      </div>
+
+      <!-- PULL QUOTE -->
+      <div class="ref-section" id="quote" style="margin-top: -3rem;">
+        <p class="ref-section-label">Component — pull quote</p>
+        <h3 style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 400; color: #f0ede6; margin-bottom: 1rem;">Quote Section</h3>
+
+        <div class="iso-quote-section">
+          <div class="iso-quote-mark">"</div>
+          <p class="iso-quote-text">I believe there is no more important application for AI than helping to improve human health.</p>
+          <div class="iso-quote-attribution">
+            <div class="iso-quote-avatar">D</div>
+            <div>
+              <div class="iso-quote-name">Sir Demis Hassabis</div>
+              <div class="iso-quote-title">Founder and CEO</div>
+            </div>
+          </div>
+        </div>
+        <p class="ref-note">Full dark section. Quote runs as horizontal ticker/marquee on the real site (text duplicated in markup). Display serif italic, weight 300. Attribution: small all-caps with circular avatar.</p>
+      </div>
+
+      <!-- NEWS FEED -->
+      <div class="ref-section" id="news" style="margin-top: -3rem;">
+        <p class="ref-section-label">Component — news feed</p>
+        <h3 style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 400; color: #f0ede6; margin-bottom: 1rem;">Article Cards</h3>
+
+        <div class="iso-news-grid">
+          <div class="iso-news-card">
+            <span class="iso-news-tag">Announcement</span>
+            <p class="iso-news-title">Isomorphic Labs announces Series B investment round</p>
+            <p class="iso-news-date">18.02.25</p>
+          </div>
+          <div class="iso-news-card">
+            <span class="iso-news-tag">Vision</span>
+            <p class="iso-news-title">The Drug Design Engine unlocks a new frontier beyond AlphaFold</p>
+            <p class="iso-news-date">18.02.25</p>
+          </div>
+          <div class="iso-news-card">
+            <span class="iso-news-tag">Announcement</span>
+            <p class="iso-news-title">Research Collaboration with Johnson &amp; Johnson Announced</p>
+            <p class="iso-news-date">18.02.25</p>
+          </div>
+        </div>
+        <p class="ref-note">Card: white bg, 1px border, hover lifts with <code class="ref-code">translateY(-2px)</code> + shadow. Tag: pill with muted bg. Title: display serif 400. Date: muted small sans. Tags: Announcement / Vision / Research.</p>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="ref-section" id="footer" style="margin-top: -3rem;">
+        <p class="ref-section-label">Component — footer</p>
+        <h3 style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 400; color: #f0ede6; margin-bottom: 1rem;">Footer</h3>
+
+        <div class="iso-footer">
+          <div class="iso-footer-top">
+            <div>
+              <div class="iso-footer-brand">Isomorphic Labs</div>
+              <p class="iso-footer-tagline">Building a future where frontier AI can help unlock life-changing medicines.</p>
+            </div>
+            <div>
+              <p class="iso-footer-col-title">Company</p>
+              <ul class="iso-footer-links">
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Life at Iso</a></li>
+                <li><a href="#">Our Team</a></li>
+                <li><a href="#">Our Tech</a></li>
+              </ul>
+            </div>
+            <div>
+              <p class="iso-footer-col-title">Careers</p>
+              <ul class="iso-footer-links">
+                <li><a href="#">Work With Us</a></li>
+                <li><a href="#">Job Openings</a></li>
+                <li><a href="#">Partnerships</a></li>
+                <li><a href="#">News</a></li>
+              </ul>
+            </div>
+            <div>
+              <p class="iso-footer-col-title">Contact</p>
+              <ul class="iso-footer-links">
+                <li><a href="#">press@isomorphiclabs.com</a></li>
+                <li><a href="#">partnering@isomorphiclabs.com</a></li>
+                <li><a href="#">connecting@isomorphiclabs.com</a></li>
+              </ul>
+            </div>
+          </div>
+          <div class="iso-footer-bottom">
+            <p class="iso-footer-copy">© 2026 Isomorphic Labs</p>
+            <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+              <a href="#" style="font-size: 0.75rem; color: rgba(245,242,236,0.2); transition: color 180ms;">Privacy Notice</a>
+              <a href="#" style="font-size: 0.75rem; color: rgba(245,242,236,0.2); transition: color 180ms;">Cookie Notice</a>
+              <a href="#" style="font-size: 0.75rem; color: rgba(245,242,236,0.2); transition: color 180ms;">Terms</a>
+            </div>
+          </div>
+        </div>
+        <p class="ref-note">Four-column grid: brand + 3 link columns. Dark bg matches hero. All-caps column headers at 25% opacity. Footer links at 50% opacity, hover to 100%.</p>
+      </div>
+
+
+      <!-- LAYOUT PATTERNS -->
+      <div class="ref-section" id="layout">
+        <p class="ref-section-label">Section 06</p>
+        <h2 class="ref-section-title">Layout Patterns</h2>
+
+        <div class="layout-demo">
+          <div class="layout-demo-label">Home page section flow</div>
+          <div class="layout-wireframe">
+            <div class="wf-block" style="height: 56px; display: flex; align-items: center; padding: 0 1rem; gap: 1rem;">
+              <div class="wf-bar" style="width: 120px; height: 6px;"></div>
+              <div style="margin-left: auto; display: flex; gap: 0.75rem;">
+                <div class="wf-bar" style="width: 50px; height: 5px;"></div>
+                <div class="wf-bar" style="width: 50px; height: 5px;"></div>
+                <div class="wf-bar" style="width: 50px; height: 5px;"></div>
+              </div>
+            </div>
+            <div class="wf-block" style="height: 200px; background: rgba(13,13,11,0.6); display: flex; align-items: flex-end; padding: 1rem; gap: 0.5rem; flex-direction: column; justify-content: flex-end; align-items: flex-start;">
+              <div class="wf-bar" style="width: 60px; height: 4px;"></div>
+              <div class="wf-bar" style="width: 280px; height: 14px;"></div>
+              <div class="wf-bar" style="width: 240px; height: 14px;"></div>
+              <div class="wf-bar" style="width: 180px; height: 6px; margin-top: 0.5rem;"></div>
+            </div>
+            <div class="wf-grid-3" style="gap: 1px;">
+              <div class="wf-block" style="height: 100px; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                <div class="wf-bar" style="width: 50px; height: 4px;"></div>
+                <div class="wf-bar" style="width: 100%; height: 6px;"></div>
+                <div class="wf-bar" style="width: 80%; height: 6px;"></div>
+              </div>
+              <div class="wf-block" style="height: 100px; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                <div class="wf-bar" style="width: 50px; height: 4px;"></div>
+                <div class="wf-bar" style="width: 100%; height: 6px;"></div>
+                <div class="wf-bar" style="width: 70%; height: 6px;"></div>
+              </div>
+              <div class="wf-block" style="height: 100px; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                <div class="wf-bar" style="width: 50px; height: 4px;"></div>
+                <div class="wf-bar" style="width: 100%; height: 6px;"></div>
+                <div class="wf-bar" style="width: 90%; height: 6px;"></div>
+              </div>
+            </div>
+            <div class="wf-grid-2" style="gap: 1px;">
+              <div class="wf-block" style="height: 120px; padding: 0.75rem; display: flex; flex-direction: column; justify-content: flex-end; gap: 0.4rem;">
+                <div class="wf-bar" style="width: 40px; height: 4px;"></div>
+                <div class="wf-bar" style="width: 80%; height: 8px;"></div>
+                <div class="wf-bar" style="width: 100%; height: 5px;"></div>
+                <div class="wf-bar" style="width: 60%; height: 5px;"></div>
+              </div>
+              <div class="wf-block" style="height: 120px; background: rgba(13,13,11,0.4);"></div>
+            </div>
+            <div class="wf-block" style="height: 80px; background: rgba(13,13,11,0.7); display: flex; align-items: center; justify-content: center; gap: 1rem;">
+              <div class="wf-bar" style="width: 200px; height: 6px;"></div>
+            </div>
+            <div class="wf-block" style="height: 120px; background: rgba(13,13,11,0.5); padding: 1rem; display: flex; gap: 2rem;">
+              <div style="display: flex; flex-direction: column; gap: 0.4rem; flex: 1.5;">
+                <div class="wf-bar" style="width: 80px; height: 5px;"></div>
+                <div class="wf-bar" style="width: 140px; height: 4px;"></div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.3rem; flex: 1;">
+                <div class="wf-bar" style="width: 50px; height: 3px;"></div>
+                <div class="wf-bar" style="width: 70%; height: 3px;"></div>
+                <div class="wf-bar" style="width: 60%; height: 3px;"></div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.3rem; flex: 1;">
+                <div class="wf-bar" style="width: 50px; height: 3px;"></div>
+                <div class="wf-bar" style="width: 70%; height: 3px;"></div>
+                <div class="wf-bar" style="width: 50%; height: 3px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-md); padding: 1rem;">
+            <p style="font-size: 0.75rem; font-weight: 500; color: rgba(240,237,230,0.5); margin-bottom: 0.5rem;">Pattern: Dark → Light alternation</p>
+            <p style="font-size: 0.8rem; color: rgba(240,237,230,0.35); line-height: 1.6;">Hero = dark. Feature cards = light cream. Quote = dark. Split = light. Footer = dark. Never two consecutive dark-bg sections.</p>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-md); padding: 1rem;">
+            <p style="font-size: 0.75rem; font-weight: 500; color: rgba(240,237,230,0.5); margin-bottom: 0.5rem;">Pattern: Eyebrow → Headline → Body → CTA</p>
+            <p style="font-size: 0.8rem; color: rgba(240,237,230,0.35); line-height: 1.6;">Every content section opens with an all-caps eyebrow label. This is the primary navigational wayfinding layer across the whole site.</p>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- MOTION -->
+      <div class="ref-section" id="motion">
+        <p class="ref-section-label">Section 07</p>
+        <h2 class="ref-section-title">Motion Guide</h2>
+        <p class="ref-note" style="margin-bottom: 1.5rem;">Three core animation patterns. Click to preview each.</p>
+
+        <div class="motion-demos">
+          <div class="motion-row">
+            <div class="motion-label-col">
+              <div class="motion-name">Fade up (scroll reveal)</div>
+              <div class="motion-spec">opacity 0→1<br>translateY 20px→0<br>900ms ease-out<br>stagger: 80ms/child</div>
+            </div>
+            <div class="motion-demo-area">
+              <button class="motion-trigger" onclick="runAnim('anim-up-demo', 'anim-up')">▶ play</button>
+              <div id="anim-up-demo" class="anim-up anim-pill" style="margin-top: 0.75rem; display: inline-block;">Section content reveals</div>
+            </div>
+          </div>
+
+          <div class="motion-row">
+            <div class="motion-label-col">
+              <div class="motion-name">Fade only</div>
+              <div class="motion-spec">opacity 0→1<br>900ms ease-out<br>used for bg overlays</div>
+            </div>
+            <div class="motion-demo-area">
+              <button class="motion-trigger" onclick="runAnim('anim-fade-demo', 'anim-fade')">▶ play</button>
+              <div id="anim-fade-demo" class="anim-fade anim-pill" style="margin-top: 0.75rem; display: inline-block;">Overlay fades in</div>
+            </div>
+          </div>
+
+          <div class="motion-row">
+            <div class="motion-label-col">
+              <div class="motion-name">Scale reveal</div>
+              <div class="motion-spec">scale 0.96→1<br>opacity 0→1<br>600ms ease-out<br>used for cards, images</div>
+            </div>
+            <div class="motion-demo-area">
+              <button class="motion-trigger" onclick="runAnim('anim-scale-demo', 'anim-scale')">▶ play</button>
+              <div id="anim-scale-demo" class="anim-scale anim-pill" style="margin-top: 0.75rem; display: inline-block;">Card scales in</div>
+            </div>
+          </div>
+
+          <div class="motion-row">
+            <div class="motion-label-col">
+              <div class="motion-name">Nav underline</div>
+              <div class="motion-spec">scaleX 0→1<br>transform-origin: left<br>320ms ease-out<br>hover trigger</div>
+            </div>
+            <div class="motion-demo-area">
+              <p style="font-size: 0.8rem; color: rgba(240,237,230,0.4);">Hover the nav above ↑ to see it live.</p>
+              <p style="font-size: 0.75rem; color: rgba(240,237,230,0.25); margin-top: 0.25rem;"><code>::after { transform: scaleX(0); transform-origin: left; }</code></p>
+            </div>
+          </div>
+
+          <div class="motion-row">
+            <div class="motion-label-col">
+              <div class="motion-name">Scroll scrub (Our Tech)</div>
+              <div class="motion-spec">video.currentTime =<br>scrollProgress * duration<br>transparent .mp4<br>scroll listener</div>
+            </div>
+            <div class="motion-demo-area">
+              <p style="font-size: 0.8rem; color: rgba(240,237,230,0.4);">A transparent-bg video (<code style="font-size:0.7rem;">mix-blend-mode: screen</code>) scrubs frame-by-frame with scroll position. Creates the illusion of 3D interaction without WebGL.</p>
+              <pre style="font-size: 0.7rem; color: rgba(240,237,230,0.25); margin-top: 0.5rem; line-height: 1.6;">window.addEventListener('scroll', () => {
+  const p = window.scrollY / document.body.scrollHeight;
+  video.currentTime = p * video.duration;
+});</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- IMPLEMENTATION NOTES -->
+      <div class="ref-section" id="usage">
+        <p class="ref-section-label">Section 08</p>
+        <h2 class="ref-section-title">Implementation Notes</h2>
+
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-md); padding: 1.25rem;">
+            <p style="font-size: 0.8125rem; font-weight: 500; color: rgba(240,237,230,0.7); margin-bottom: 0.5rem;">Google Fonts import</p>
+            <pre style="font-size: 0.7rem; color: rgba(240,237,230,0.35); line-height: 1.7; overflow-x: auto;"><code>&lt;link href="https://fonts.googleapis.com/css2?
+  family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400
+  &family=DM+Sans:wght@300;400;500
+  &display=swap" rel="stylesheet"&gt;</code></pre>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-md); padding: 1.25rem;">
+            <p style="font-size: 0.8125rem; font-weight: 500; color: rgba(240,237,230,0.7); margin-bottom: 0.5rem;">Scroll reveal (Intersection Observer)</p>
+            <pre style="font-size: 0.7rem; color: rgba(240,237,230,0.35); line-height: 1.7; overflow-x: auto;"><code>const io = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      e.target.style.transitionDelay = `${i * 80}ms`;
+      e.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('[data-reveal]').forEach(el => {
+  el.classList.add('pre-reveal');
+  io.observe(el);
+});</code></pre>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-md); padding: 1.25rem;">
+            <p style="font-size: 0.8125rem; font-weight: 500; color: rgba(240,237,230,0.7); margin-bottom: 0.5rem;">Sticky nav transparency</p>
+            <pre style="font-size: 0.7rem; color: rgba(240,237,230,0.35); line-height: 1.7; overflow-x: auto;"><code>const nav = document.querySelector('.iso-nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 60);
+});
+/* CSS: .iso-nav { background: transparent; }
+        .iso-nav.scrolled { background: rgba(13,13,11,0.95);
+                            backdrop-filter: blur(12px); } */</code></pre>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-md); padding: 1.25rem;">
+            <p style="font-size: 0.8125rem; font-weight: 500; color: rgba(240,237,230,0.7); margin-bottom: 0.75rem;">Key aesthetic rules — don't break these</p>
+            <ul style="font-size: 0.8rem; color: rgba(240,237,230,0.4); line-height: 1.8; list-style: none; display: flex; flex-direction: column; gap: 0.3rem;">
+              <li>✦ Background is <strong style="color: rgba(240,237,230,0.6);">#f5f2ec</strong> (warm cream), never pure white on light sections</li>
+              <li>✦ Headlines are always Cormorant Garamond, never the sans-serif</li>
+              <li>✦ Font weights: 300 body, 400 headlines, 500 labels — never 600+</li>
+              <li>✦ Eyebrow labels precede every content section — this is structural, not decorative</li>
+              <li>✦ CTAs are always lowercase (e.g. "work with us", not "Work With Us")</li>
+              <li>✦ Section padding is generous: min 80px top/bottom, scales to 160px on desktop</li>
+              <li>✦ Border radius on sections: <strong style="color: rgba(240,237,230,0.6);">16px</strong>. Buttons: <strong style="color: rgba(240,237,230,0.6);">999px (pill)</strong></li>
+              <li>✦ No drop shadows except on button hover (subtle, dark, not colorful)</li>
+              <li>✦ Alternate dark/light section backgrounds — never two darks in a row</li>
+              <li>✦ Teal (#1a5c52) is for links and CTA text only. Never backgrounds.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /ref-content -->
+  </main>
+
+  <script>
+    function runAnim(id, cls) {
+      const el = document.getElementById(id);
+      el.classList.remove(cls.split(' ').find(c => c.startsWith('anim-')));
+      // Force reflow
+      void el.offsetWidth;
+      setTimeout(() => {
+        el.classList.add(id.includes('up') ? 'anim-up' : id.includes('fade') ? 'anim-fade' : 'anim-scale');
+        el.classList.add('run');
+      }, 20);
+    }
+
+    // Sticky TOC active state
+    const sections = document.querySelectorAll('.ref-section[id]');
+    const tocLinks = document.querySelectorAll('.ref-toc a');
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          tocLinks.forEach(l => l.style.color = '');
+          const active = document.querySelector(`.ref-toc a[href="#${e.target.id}"]`);
+          if (active) {
+            active.style.color = 'rgba(240,237,230,0.9)';
+            active.style.borderLeftColor = 'rgba(240,237,230,0.5)';
+          }
+        }
+      });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+    sections.forEach(s => io.observe(s));
+  </script>
+
+</body>
+</html>
