@@ -204,6 +204,10 @@ func parseFpocketInfo(infoPath string) ([]models.Pocket, error) {
 				}
 			case "Volume":
 				current.Volume, _ = strconv.ParseFloat(valStr, 64)
+			case "Total SASA":
+				current.SurfaceArea, _ = strconv.ParseFloat(valStr, 64)
+			case "Mean alpha sphere radius", "Mean alpha-sphere radius":
+				current.Depth, _ = strconv.ParseFloat(valStr, 64)
 			case "Hydrophobicity score":
 				current.Hydrophobicity, _ = strconv.ParseFloat(valStr, 64)
 			case "Polarity score":

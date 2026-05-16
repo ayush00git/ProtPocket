@@ -5,6 +5,8 @@ type Pocket struct {
 	PocketID          int        `json:"pocket_id"`
 	Score             float64    `json:"druggability_score"`
 	Volume            float64    `json:"volume"`
+	SurfaceArea       float64    `json:"surface_area"`  // Total SASA (Å²)
+	Depth             float64    `json:"depth"`         // Mean alpha-sphere radius proxy (Å)
 	Hydrophobicity    float64    `json:"hydrophobicity"`
 	Polarity          float64    `json:"polarity"`
 	SourceType        string     `json:"source_type"` // "monomer" or "dimer"

@@ -17,4 +17,11 @@ func Register(r *gin.Engine) {
 
 	r.POST("/dock", handlers.DockSubmitHandler)
 	r.GET("/dock/status", handlers.DockStatusHandler)
+
+	mutation := r.Group("/mutation")
+	{
+		mutation.POST("/parse", handlers.MutationParseHandler)
+		mutation.POST("/alphamisense", handlers.MutationAlphaMissenseHandler)
+		mutation.POST("/analyze", handlers.MutationAnalyzeHandler)
+	}
 }
