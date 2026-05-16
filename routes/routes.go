@@ -22,6 +22,7 @@ func Register(r *gin.Engine) {
 	{
 		mutation.POST("/parse", handlers.MutationParseHandler)
 		mutation.POST("/alphamisense", handlers.MutationAlphaMissenseHandler)
+		mutation.POST("/structures", handlers.MutationStructuresHandler)
 		mutation.POST("/analyze", handlers.MutationAnalyzeHandler)
 	}
 }

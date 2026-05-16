@@ -5,6 +5,7 @@ import { HomePage } from './pages/HomePage';
 import { SearchPage } from './pages/SearchPage';
 import { ComplexDetailPage } from './pages/ComplexDetailPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { MutationPage } from './pages/MutationPage';
 import { Footer } from './components/layout/Footer';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
             <Route path="/search" element={<SearchPage />} />
             <Route path="/complex/:id" element={<ComplexDetailPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/mutation" element={<MutationPage />} />
           </Routes>
         </main>
         <Footer />
