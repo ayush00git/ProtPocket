@@ -11,9 +11,11 @@ export function ViewerHeader({ label, plddt }: ViewerHeaderProps) {
       <span className="font-mono text-[11px] uppercase tracking-wider text-text-muted">
         {label}
       </span>
-      <span className="font-mono text-xs text-accent">
-        {(plddt || 0).toFixed(1)}% confidence
-      </span>
+      {plddt != null && plddt > 0 && (
+        <span className="font-mono text-xs text-accent">
+          {plddt.toFixed(1)}% confidence
+        </span>
+      )}
     </div>
   );
 }

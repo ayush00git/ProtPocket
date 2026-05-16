@@ -94,11 +94,56 @@ func MutationAlphaMissenseHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
+// --- POST /mutation/structures --------------------------------------------
+
+// MutationStructuresHandler handles POST /mutation/structures.
+// Body: {"uniprot_id": "P00533", "mutation": "EGFR T790M"}
+//
+// Fast path (~5–10 s): parses the mutation and fetches both structure URLs
+// (wildtype from AlphaFold, mutant from RCSB or AphaFold approx).
+// The client renders the structures in the 3-D viewer, then calls
+// POST /mutation/analyze passing the returned structure fields to skip
+// a second fetch.
+func MutationStructuresHandler(c *gin.Context) {
+	var req struct {
+		UniprotID string `json:"uniprot_id" binding:"required"`
+		Mutation  string `json:"mutation"   binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "fields 'uniprot_id' and 'mutation' are required"})
+		return
+	}
+
+	parsed, err := services.ParseMutation(req.Mutation)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "mutation parse: " + err.Error()})
+		return
+	}
+
+	structures, err := services.FetchMutationStructures(req.UniprotID, parsed)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "structure fetch: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, structures)
+}
+
 // --- POST /mutation/analyze -----------------------------------------------
 
 type analyzeRequest struct {
 	UniprotID string `json:"uniprot_id" binding:"required"`
 	Mutation  string `json:"mutation"   binding:"required"`
+
+	// Optional pre-fetched structure data from POST /mutation/structures.
+	// When WildtypePDBURL is non-empty the structure fetch is skipped so the
+	// client does not pay the network cost a second time.
+	WildtypePDBURL string  `json:"wildtype_pdb_url"`
+	WildtypePLDDT  float64 `json:"wildtype_plddt"`
+	MutantPDBURL   string  `json:"mutant_pdb_url"`
+	MutantSource   string  `json:"mutant_source"`
+	MutantIsApprox bool    `json:"mutant_is_approximation"`
+	ApproxReason   string  `json:"approximation_reason"`
 }
 
 // MutationAnalyzeHandler handles POST /mutation/analyze.
@@ -106,11 +151,10 @@ type analyzeRequest struct {
 //
 // Full pipeline:
 //  1. Parse mutation string
-//  2. (parallel) AlphaMissense lookup + AlphaFold/RCSB structure fetch
+//  2. (parallel) AlphaMissense lookup + structure fetch
+//     — structure fetch is skipped when wildtype_pdb_url is supplied
 //  3. fpocket on wildtype + mutant structures
 //  4. Compute Druggability Shift Score
-//
-// This endpoint is slow (~30–60s) due to structure download + fpocket.
 func MutationAnalyzeHandler(c *gin.Context) {
 	if err := initAMDB(); err != nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{
@@ -133,7 +177,7 @@ func MutationAnalyzeHandler(c *gin.Context) {
 	}
 	variantStr := fmt.Sprintf("%s%d%s", parsed.WildtypeAA, parsed.Position, parsed.MutantAA)
 
-	// Step 2: AM lookup + structure fetch in parallel
+	// Step 2: AM lookup (always) + structure fetch (only when not pre-supplied)
 	var (
 		am         *services.AlphaMissenseResult
 		structures *services.MutationStructures
@@ -141,15 +185,35 @@ func MutationAnalyzeHandler(c *gin.Context) {
 		structErr  error
 		wg         sync.WaitGroup
 	)
-	wg.Add(2)
-	go func() {
-		defer wg.Done()
-		am, amErr = services.QueryAlphaMissense(req.UniprotID, variantStr)
-	}()
-	go func() {
-		defer wg.Done()
-		structures, structErr = services.FetchMutationStructures(req.UniprotID, parsed)
-	}()
+
+	if req.WildtypePDBURL != "" {
+		// Structures already fetched by the client — reconstruct from request.
+		structures = &services.MutationStructures{
+			UniprotID:      req.UniprotID,
+			Mutation:       parsed,
+			WildtypePDBURL: req.WildtypePDBURL,
+			WildtypePLDDT:  req.WildtypePLDDT,
+			MutantPDBURL:   req.MutantPDBURL,
+			MutantSource:   req.MutantSource,
+			MutantIsApprox: req.MutantIsApprox,
+			ApproxReason:   req.ApproxReason,
+		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			am, amErr = services.QueryAlphaMissense(req.UniprotID, variantStr)
+		}()
+	} else {
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			am, amErr = services.QueryAlphaMissense(req.UniprotID, variantStr)
+		}()
+		go func() {
+			defer wg.Done()
+			structures, structErr = services.FetchMutationStructures(req.UniprotID, parsed)
+		}()
+	}
 	wg.Wait()
 
 	if amErr != nil {

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useComplex } from '../hooks/useComplex';
 import { ComplexHeader } from '../components/complex/ComplexHeader';
 import { ProteinViewer } from '../components/complex/viewer/ProteinViewer';
@@ -100,7 +100,17 @@ export function ComplexDetailPage() {
   return (
     <div className="w-full flex flex-col items-center">
       <div className="w-full max-w-[1400px] px-6 py-[48px] flex flex-col gap-6">
-        <button onClick={() => navigate(-1)} className="font-mono text-[11px] uppercase tracking-wider w-24 text-center py-2 bg-bg-tertiary border border-border flex items-center justify-center gap-2 text-text-secondary hover:text-text-primary hover:bg-border-subtle hover:border-border-subtle rounded transition-colors duration-150">← BACK</button>
+        <div className="flex items-center justify-between">
+          <button onClick={() => navigate(-1)} className="font-mono text-[11px] uppercase tracking-wider w-24 text-center py-2 bg-bg-tertiary border border-border flex items-center justify-center gap-2 text-text-secondary hover:text-text-primary hover:bg-border-subtle hover:border-border-subtle rounded transition-colors duration-150">← BACK</button>
+          {id && (
+            <Link
+              to={`/mutation?uniprot_id=${encodeURIComponent(id)}`}
+              className="font-mono text-[11px] uppercase tracking-wider px-3 py-2 bg-bg-tertiary border border-border rounded text-text-secondary hover:text-text-primary hover:bg-border-subtle hover:border-border-subtle transition-colors duration-150"
+            >
+              Analyze mutation →
+            </Link>
+          )}
+        </div>
         {loading && <LoadingState message="Loading complex structure..." />}
         {error && <ErrorState message={error} />}
         {!loading && !error && complex && (

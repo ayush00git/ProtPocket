@@ -155,3 +155,85 @@ export interface MolstarPanelHandle {
   highlightPocket: (residueIndices: number[]) => Promise<void>;
   clearPocketHighlight: () => Promise<void>;
 }
+
+// ── Mutation analysis types ─────────────────────────────────────────────────
+
+export interface ParsedMutation {
+  gene: string;
+  position: number;
+  wildtype_aa: string;
+  mutant_aa: string;
+  raw: string;
+}
+
+export interface MutationPocketMetrics {
+  pocket_id: number;
+  druggability_score: number;
+  volume: number;
+  surface_area: number;
+  depth: number;
+  hydrophobicity: number;
+  polarity: number;
+}
+
+export interface MutationPocketDelta {
+  druggability_score: number;
+  volume: number;
+  surface_area: number;
+  depth: number;
+  hydrophobicity: number;
+  polarity: number;
+}
+
+export interface DSSBreakdown {
+  geometry_score: number;
+  am_weight: number;
+  norm_druggability_delta: number;
+  norm_volume_delta: number;
+  norm_surface_area_delta: number;
+  norm_hydrophobicity_delta: number;
+  is_approximation: boolean;
+}
+
+export interface MutationDSSResult {
+  score: number;
+  classification: string; // "pocket_improved" | "pocket_unchanged" | "pocket_degraded" | "pocket_collapsed" | "new_pocket_detected"
+  confidence: string;     // "high" | "low"
+  breakdown: DSSBreakdown;
+}
+
+export interface MutationStructuresResult {
+  uniprot_id: string;
+  mutation: ParsedMutation;
+  wildtype_pdb_url: string;
+  wildtype_cif_url: string;
+  wildtype_entry_id: string;
+  wildtype_plddt: number;
+  mutant_pdb_url: string;
+  mutant_cif_url?: string;
+  mutant_pdb_id?: string;
+  mutant_source: string;       // "rcsb_experimental" | "alphafold_wildtype_approx"
+  mutant_is_approximation: boolean;
+  approximation_reason?: string;
+}
+
+export interface MutationAnalyzeResult {
+  uniprot_id: string;
+  mutation: ParsedMutation;
+  alphamissense: {
+    am_pathogenicity: number;
+    am_class: string; // "benign" | "ambiguous" | "pathogenic"
+  };
+  structures: {
+    mutant_source: string;       // "rcsb_experimental" | "alphafold_wildtype_approx"
+    mutant_is_approximation: boolean;
+    wildtype_pdb_url: string;
+    mutant_pdb_url: string;
+  };
+  pockets: {
+    wildtype_top_pocket: MutationPocketMetrics;
+    mutant_top_pocket: MutationPocketMetrics;
+    pocket_delta: MutationPocketDelta;
+  };
+  druggability_shift: MutationDSSResult;
+}
