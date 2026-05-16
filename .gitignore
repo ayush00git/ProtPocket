@@ -3,3 +3,16 @@ node_modules/
 /tmp/
 dist/
 app/dist/
+
+# AlphaMissense dataset - too large for git (3.5GB uncompressed)
+data/AlphaMissense_aa_substitutions.tsv
+data/AlphaMissense_aa_substitutions.tsv.gz
+data/*.tsv
+data/*.tsv.gz
+alphamissense_import
+alphamissense_index
+
+# AlphaMissense SQLite DB - too large for git
+data/alphamissense.db
+data/alphamissense.db-shm
+data/alphamissense.db-wal
