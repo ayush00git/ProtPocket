@@ -49,6 +49,8 @@ export default {
         mono: ['Roboto Mono', 'monospace'],
         display: ['Inter', 'sans-serif'],
         body: ['Inter', 'sans-serif'],
+        geist: ['Geist', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+        jetbrains: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       }
     },
   },
