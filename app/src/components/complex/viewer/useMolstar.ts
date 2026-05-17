@@ -21,6 +21,8 @@ interface UseMolstarOptions {
   conformations?: Conformation[] | null;
   activeMode?: number | null;
   hideControls?: boolean;
+  onReady?: (plugin: any) => void;
+  canvasBackground?: number;
 }
 
 // Extend HTMLElement to hold React root
@@ -44,6 +46,8 @@ export function useMolstar({
   conformations = null,
   activeMode = null,
   hideControls = false,
+  onReady,
+  canvasBackground,
 }: UseMolstarOptions) {
   const containerRef = useRef<HTMLElementWithRoot | null>(null);
   const pluginRef = useRef<any>(null);
@@ -80,9 +84,12 @@ export function useMolstar({
         };
 
         // Set background matching site theme
+        const bgColor = canvasBackground !== undefined
+          ? Color(canvasBackground)
+          : theme === 'dark' ? Color(0x0a0a0a) : Color(0xffffff);
         spec.canvas3d = {
           renderer: {
-            backgroundColor: theme === 'dark' ? Color(0x0a0a0a) : Color(0xffffff),
+            backgroundColor: bgColor,
             selectColor: theme === 'dark' ? Color(0x4ade80) : Color(0x2563eb),
             highlightColor: theme === 'dark' ? Color(0x4ade80) : Color(0x2563eb),
           },
@@ -134,6 +141,8 @@ export function useMolstar({
         if (autoLoad && structureUrl) {
           await loadStructure(plugin, structureUrl);
         }
+
+        onReady?.(plugin);
       } catch (err: unknown) {
         console.error('[useMolstar] init failed:', err);
         if (!disposed) {
