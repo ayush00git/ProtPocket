@@ -75,7 +75,8 @@ function DssPill({ label, variant }: { label: string; variant: DssVariant }) {
 
 export function BenchmarkV3() {
   return (
-    <section id="mutation" className="py-[120px]">
+    <div className="w-full flex justify-center" style={{ background: 'linear-gradient(180deg, #EBF9F3 0%, #E4F1F8 100%)' }}>
+      <section id="mutation" className="py-[120px] px-6 max-w-[1180px] w-full">
       <div className="max-w-[760px] mb-[72px]">
         <span
           className="v3-reveal inline-block text-[12.5px] text-[#7A8580] font-medium mb-7 pb-[10px]"
@@ -149,6 +150,7 @@ export function BenchmarkV3() {
         benchmarked against crystallographically determined wildtype and mutant structures from the
         Protein Data Bank.
       </p>
-    </section>
+      </section>
+    </div>
   );
 }

@@ -39,9 +39,13 @@ export function LandingV3() {
       <HeroV3 />
       <main className="max-w-[1180px] mx-auto px-8" id="top">
         <ProblemV3 />
-        <PlatformV3 />
+      </main>
+      <PlatformV3 />
+      <main className="max-w-[1180px] mx-auto px-8">
         <WorkflowV3 />
-        <BenchmarkV3 />
+      </main>
+      <BenchmarkV3 />
+      <main className="max-w-[1180px] mx-auto px-8">
         <InstallV3 />
         <CTAV3 />
       </main>

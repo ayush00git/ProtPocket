@@ -20,49 +20,67 @@ const PROBLEMS = [
 
 export function ProblemV3() {
   return (
-    <section id="problem" className="py-[120px]">
-
-      {/* Header */}
-      <div className="max-w-[760px] mb-[64px]">
-        <span
-          className="v3-reveal inline-block text-[12.5px] text-[#7A8580] font-medium mb-7 pb-[10px]"
-          style={{ borderBottom: '1px solid rgba(11,15,20,0.16)' }}
-        >
-          The problem
-        </span>
-        <h2
-          className="v3-reveal font-medium tracking-[-0.035em] leading-[1.0] text-[#0B0F14] m-0 mb-6"
-          style={{ fontSize: 'clamp(34px, 4.8vw, 60px)' }}
-        >
-          Structure is available.{' '}
-          <span className="text-[#B8C2BD] font-normal">Targeting is not.</span>
-        </h2>
-        <p className="v3-reveal text-[18px] leading-[1.5] text-[#4A554D] m-0 max-w-[560px] font-normal">
-          Drug discovery is fragmented by design. Every step requires a different tool,
-          a different database, and a manual export.
-        </p>
-      </div>
-
-      {/* Problem blocks */}
-      <div
-        className="v3-reveal grid grid-cols-1 gap-px max-w-[760px] rounded-2xl overflow-hidden"
-        style={{ background: 'rgba(11,15,20,0.08)', border: '1px solid rgba(11,15,20,0.08)' }}
-      >
-        {PROBLEMS.map(({ num, title, desc }) => (
-          <div key={num} className="bg-white px-8 py-7 flex flex-col gap-2">
-            <span className="font-jetbrains text-[11px] text-[#B8C2BD] tracking-[0.04em]">
-              {num}
+    <section id="problem" className="py-[140px] relative w-full">
+      <div className="flex flex-col lg:flex-row gap-16 lg:gap-24 items-start w-full">
+        
+        {/* Left Side: Sticky Header */}
+        <div className="w-full lg:w-[45%] md:sticky md:top-[160px] self-start">
+          <div className="v3-reveal">
+            <span
+              className="inline-flex items-center gap-[8px] rounded-full text-[12.5px] text-[#4A554D] mb-8 font-medium"
+              style={{
+                padding: '6px 14px 6px 10px',
+                border: '1px solid rgba(11,15,20,0.12)',
+                background: '#FAFBFA',
+              }}
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-[#0B0F14] opacity-80" />
+              The bottleneck
             </span>
-            <h3 className="text-[17px] font-medium tracking-[-0.02em] text-[#0B0F14] m-0">
-              {title}
-            </h3>
-            <p className="text-[14.5px] leading-[1.65] text-[#4A554D] m-0 font-normal">
-              {desc}
+            
+            <h2
+              className="font-medium tracking-[-0.035em] leading-[1.05] text-[#0B0F14] m-0 mb-6"
+              style={{ fontSize: 'clamp(40px, 5vw, 68px)' }}
+            >
+              Structure is available.<br />
+              <span className="text-[#8b9590] font-normal">Targeting is not.</span>
+            </h2>
+            
+            <p className="text-[18px] leading-[1.65] text-[#4A554D] m-0 font-normal max-w-[480px]">
+              Drug discovery is fragmented by design. Every step requires a different tool,
+              a different database, and a manual export.
             </p>
           </div>
-        ))}
-      </div>
+        </div>
 
+        {/* Right Side: Flowing Problem Cards */}
+        <div className="w-full lg:w-[55%] flex flex-col gap-8">
+          {PROBLEMS.map(({ num, title, desc }) => (
+            <div 
+              key={num} 
+              className="v3-reveal p-10 sm:p-12 rounded-[32px] bg-white relative overflow-hidden"
+              style={{ border: '1px solid rgba(11,15,20,0.06)' }}
+            >
+              <div className="relative z-10">
+                <div className="w-[42px] h-[42px] rounded-full bg-[#F4F7F5] flex items-center justify-center mb-8 border border-[rgba(11,15,20,0.04)] shadow-sm">
+                  <span className="font-jetbrains text-[13px] text-[#0B0F14] font-semibold tracking-wider">
+                    {num}
+                  </span>
+                </div>
+                
+                <h3 className="text-[22px] sm:text-[24px] font-medium tracking-[-0.025em] text-[#0B0F14] m-0 mb-4 leading-[1.3]">
+                  {title}
+                </h3>
+                
+                <p className="text-[15.5px] sm:text-[16px] leading-[1.7] text-[#4A554D] m-0 font-normal">
+                  {desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+      </div>
     </section>
   );
 }

@@ -91,23 +91,12 @@ function EGFRViewer() {
 
 export function PlatformV3() {
   return (
-    <section id="platform" className="py-[140px] px-6 max-w-[1200px] mx-auto w-full">
+    <div className="w-full flex justify-center" style={{ background: 'linear-gradient(180deg, #EBF9F3 0%, #E4F1F8 100%)' }}>
+      <section id="platform" className="py-[140px] px-6 max-w-[1200px] w-full">
 
       {/* Header */}
       <div className="max-w-[760px] mb-[72px] text-center mx-auto flex flex-col items-center">
-        <div
-          className="v3-reveal inline-flex items-center gap-[10px] rounded-full text-[12.5px] text-[#4A554D] mb-7"
-          style={{
-            padding: '6px 16px 6px 8px',
-            border: '1px solid rgba(11,15,20,0.12)',
-            background: '#FAFBFA',
-          }}
-        >
-          <span className="bg-[#C6FF3D] border border-[rgba(11,15,20,0.1)] text-[#0B0F14] px-[10px] py-[3px] rounded-full font-jetbrains text-[11px] tracking-[0.03em] font-semibold">
-            Platform
-          </span>
-          <span className="tracking-[0.01em]">Unified molecular intelligence</span>
-        </div>
+        
         <h2
           className="v3-reveal font-medium tracking-[-0.035em] leading-[1.05] text-[#0B0F14] m-0 mb-6"
           style={{ fontSize: 'clamp(40px, 5.5vw, 68px)' }}
@@ -122,15 +111,12 @@ export function PlatformV3() {
 
       {/* Immersive HUD Layout */}
       <div 
-        className="v3-reveal relative w-full rounded-[40px] overflow-hidden bg-white"
+        className="v3-reveal relative w-full rounded-[40px] overflow-hidden"
         style={{ 
           height: '720px', 
-          backgroundColor: '#F8F9F8',
           backgroundImage: 'linear-gradient(rgba(11,15,20,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(11,15,20,0.035) 1px, transparent 1px)',
           backgroundSize: '24px 24px',
-          backgroundPosition: 'center center',
-          border: '1px solid rgba(11,15,20,0.08)',
-          boxShadow: '0 32px 80px -20px rgba(11,15,20,0.12)'
+          backgroundPosition: 'center center'
         }}
       >
         {/* Center: Mol* Viewer */}
@@ -156,6 +142,7 @@ export function PlatformV3() {
         </div>
       </div>
 
-    </section>
+      </section>
+    </div>
   );
 }

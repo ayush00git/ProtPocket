@@ -55,17 +55,23 @@ export function HeroV3() {
           href="https://github.com/ayush00git/ProtPocket"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-[10px] px-[22px] py-[14px] rounded-full bg-[#0B0F14] text-white text-[14.5px] font-medium no-underline border border-transparent transition-colors duration-200 hover:bg-white hover:text-[#0B0F14] hover:border-[#0B0F14]/20"
+          className="relative group overflow-hidden inline-flex items-center gap-[10px] px-[22px] py-[14px] rounded-full bg-[#0B0F14] border border-[#0B0F14] font-medium no-underline"
         >
-          <GithubIcon />
-          View on GitHub
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-white rounded-full scale-0 group-hover:scale-100 transition-transform duration-500 ease-out z-0" />
+          <span className="relative z-10 flex items-center gap-[10px] text-white text-[14.5px] group-hover:text-[#0B0F14] transition-colors duration-300">
+            <GithubIcon />
+            View on GitHub
+          </span>
         </a>
         <a
           href="#platform"
-          className="inline-flex items-center gap-[10px] px-[22px] py-[14px] rounded-full text-[14.5px] font-medium no-underline text-[#0B0F14] bg-white/90 border border-[#0B0F14]/15 transition-colors duration-200 hover:bg-[#0B0F14] hover:text-white hover:border-[#0B0F14]"
+          className="relative group overflow-hidden inline-flex items-center gap-[10px] px-[22px] py-[14px] rounded-full font-medium no-underline bg-white/90 border border-[#0B0F14]/15 hover:border-[#0B0F14] transition-colors duration-300"
         >
-          Read the docs
-          <ArrowIcon />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-[#0B0F14] rounded-full scale-0 group-hover:scale-100 transition-transform duration-500 ease-out z-0" />
+          <span className="relative z-10 flex items-center gap-[10px] text-[14.5px] text-[#0B0F14] group-hover:text-white transition-colors duration-300">
+            Read the docs
+            <ArrowIcon />
+          </span>
         </a>
       </div>
 
