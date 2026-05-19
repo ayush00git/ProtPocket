@@ -23,23 +23,8 @@ const STATEMENTS = [
 
 export function HeroV3() {
   return (
-    <section className="pt-[120px] pb-[120px] max-w-[980px]">
-
-      {/* Badge */}
-      <div
-        className="v3-reveal v3-in inline-flex items-center gap-[10px] rounded-full text-[12.5px] text-[#4A554D] mb-8"
-        style={{
-          padding: '6px 14px 6px 8px',
-          border: '1px solid rgba(11,15,20,0.16)',
-          background: '#FAFBFA',
-        }}
-      >
-        <span className="bg-[#0B0F14] text-white px-[9px] py-[3px] rounded-full font-jetbrains text-[10.5px] tracking-[0.03em]">
-          Open-source
-        </span>
-        <span>March 2026 AlphaFold homodimer dataset</span>
-      </div>
-
+    <div className="w-full flex justify-center" style={{ background: 'linear-gradient(180deg, #EBF9F3 0%, #E4F1F8 100%)' }}>
+      <section className="pt-[120px] pb-[120px] max-w-[980px] w-full px-6">
       {/* Title */}
       <h1
         className="v3-reveal v3-in d1 font-medium tracking-[-0.04em] leading-[0.96] text-[#0B0F14] m-0 mb-9"
@@ -70,18 +55,14 @@ export function HeroV3() {
           href="https://github.com/ayush00git/ProtPocket"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-[10px] px-[22px] py-[14px] rounded-full bg-[#0B0F14] text-white text-[14.5px] font-medium no-underline transition-all duration-200 hover:-translate-y-px hover:bg-[#1F2A22]"
+          className="inline-flex items-center gap-[10px] px-[22px] py-[14px] rounded-full bg-[#0B0F14] text-white text-[14.5px] font-medium no-underline border border-transparent transition-colors duration-200 hover:bg-white hover:text-[#0B0F14] hover:border-[#0B0F14]/20"
         >
-          <GithubIcon color="#fff" />
+          <GithubIcon />
           View on GitHub
         </a>
         <a
           href="#platform"
-          className="inline-flex items-center gap-[10px] px-[22px] py-[14px] rounded-full text-[14.5px] font-medium no-underline text-[#0B0F14] transition-all duration-200 hover:-translate-y-px hover:border-[#0B0F14]"
-          style={{
-            background: 'rgba(255,255,255,0.92)',
-            border: '1px solid rgba(11,15,20,0.16)',
-          }}
+          className="inline-flex items-center gap-[10px] px-[22px] py-[14px] rounded-full text-[14.5px] font-medium no-underline text-[#0B0F14] bg-white/90 border border-[#0B0F14]/15 transition-colors duration-200 hover:bg-[#0B0F14] hover:text-white hover:border-[#0B0F14]"
         >
           Read the docs
           <ArrowIcon />
@@ -103,6 +84,7 @@ export function HeroV3() {
         </div>
       </div>
 
-    </section>
+      </section>
+    </div>
   );
 }

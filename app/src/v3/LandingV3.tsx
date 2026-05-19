@@ -36,8 +36,8 @@ export function LandingV3() {
       style={{ color: '#0B0F14' }}
     >
       <NavV3 />
+      <HeroV3 />
       <main className="max-w-[1180px] mx-auto px-8" id="top">
-        <HeroV3 />
         <ProblemV3 />
         <PlatformV3 />
         <WorkflowV3 />
