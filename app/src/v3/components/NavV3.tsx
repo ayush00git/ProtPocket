@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const GithubIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -6,8 +7,7 @@ const GithubIcon = () => (
   </svg>
 );
 
-const NAV_LINKS = [
-  { label: 'Platform', href: '#platform' },
+const ANCHOR_LINKS = [
   { label: 'Workflow', href: '#workflow' },
   { label: 'Mutation impact', href: '#mutation' },
   { label: 'Architecture', href: '#architecture' },
@@ -42,7 +42,13 @@ export function NavV3() {
           className="hidden md:flex items-center gap-7 text-[14px] text-[#4A554D]"
           style={{ fontWeight: 450 }}
         >
-          {NAV_LINKS.map(({ label, href }) => (
+          <Link
+            to="/v3/platform"
+            className="no-underline transition-opacity duration-200 hover:opacity-55 text-[#4A554D]"
+          >
+            Platform
+          </Link>
+          {ANCHOR_LINKS.map(({ label, href }) => (
             <a
               key={href}
               href={href}
