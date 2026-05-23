@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const GithubIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -6,8 +7,7 @@ const GithubIcon = () => (
   </svg>
 );
 
-const NAV_LINKS = [
-  { label: 'Platform', href: '#platform' },
+const ANCHOR_LINKS = [
   { label: 'Workflow', href: '#workflow' },
   { label: 'Mutation impact', href: '#mutation' },
   { label: 'Architecture', href: '#architecture' },
@@ -32,11 +32,8 @@ export function NavV3() {
         {/* Brand */}
         <a
           href="#top"
-          className="inline-flex items-center gap-[10px] text-[17px] font-semibold tracking-[-0.015em] text-[#0B0F14] no-underline"
+          className="inline-flex items-center text-[17px] font-semibold tracking-[-0.015em] text-[#0B0F14] no-underline"
         >
-          <span className="w-[22px] h-[22px] rounded-[6px] bg-[#0B0F14] inline-flex items-center justify-center shrink-0">
-            <span className="w-[9px] h-[9px] rounded-[2px] bg-[#C6FF3D]" />
-          </span>
           ProtPocket
         </a>
 
@@ -45,7 +42,13 @@ export function NavV3() {
           className="hidden md:flex items-center gap-7 text-[14px] text-[#4A554D]"
           style={{ fontWeight: 450 }}
         >
-          {NAV_LINKS.map(({ label, href }) => (
+          <Link
+            to="/v3/platform"
+            className="no-underline transition-opacity duration-200 hover:opacity-55 text-[#4A554D]"
+          >
+            Platform
+          </Link>
+          {ANCHOR_LINKS.map(({ label, href }) => (
             <a
               key={href}
               href={href}
@@ -61,10 +64,13 @@ export function NavV3() {
           href="https://github.com/ayush00git/ProtPocket"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-[10px] rounded-full bg-[#0B0F14] text-white text-[13.5px] font-medium no-underline transition-all duration-200 hover:-translate-y-px hover:bg-[#1F2A22]"
+          className="relative group overflow-hidden inline-flex items-center gap-2 px-4 py-[10px] rounded-full bg-[#0B0F14] border border-[#0B0F14] font-medium no-underline"
         >
-          <GithubIcon />
-          GitHub
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[160px] h-[160px] bg-white rounded-full scale-0 group-hover:scale-100 transition-transform duration-500 ease-out z-0" />
+          <span className="relative z-10 flex items-center gap-2 text-white text-[13.5px] group-hover:text-[#0B0F14] transition-colors duration-300">
+            <GithubIcon />
+            GitHub
+          </span>
         </a>
       </nav>
     </div>

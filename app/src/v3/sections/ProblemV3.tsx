@@ -20,43 +20,61 @@ const PROBLEMS = [
 
 export function ProblemV3() {
   return (
-    <section id="problem" className="py-[120px]">
+    <section id="problem" className="py-[120px] relative w-full">
 
-      {/* Header */}
-      <div className="max-w-[760px] mb-[64px]">
+      {/* Section header — full width, headline left / subtext right */}
+      <div className="v3-reveal mb-16 lg:mb-20">
         <span
-          className="v3-reveal inline-block text-[12.5px] text-[#7A8580] font-medium mb-7 pb-[10px]"
-          style={{ borderBottom: '1px solid rgba(11,15,20,0.16)' }}
+          className="inline-flex items-center gap-[8px] rounded-full text-[12.5px] text-[#4A554D] mb-8 font-medium"
+          style={{
+            padding: '6px 14px 6px 10px',
+            border: '1px solid rgba(11,15,20,0.12)',
+            background: '#FAFBFA',
+          }}
         >
-          The problem
+          <div className="w-1.5 h-1.5 rounded-full bg-[#0B0F14] opacity-80" />
+          The bottleneck
         </span>
-        <h2
-          className="v3-reveal font-medium tracking-[-0.035em] leading-[1.0] text-[#0B0F14] m-0 mb-6"
-          style={{ fontSize: 'clamp(34px, 4.8vw, 60px)' }}
-        >
-          Structure is available.{' '}
-          <span className="text-[#B8C2BD] font-normal">Targeting is not.</span>
-        </h2>
-        <p className="v3-reveal text-[18px] leading-[1.5] text-[#4A554D] m-0 max-w-[560px] font-normal">
-          Drug discovery is fragmented by design. Every step requires a different tool,
-          a different database, and a manual export.
-        </p>
+
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 lg:gap-20">
+          <h2
+            className="font-medium tracking-[-0.035em] leading-[1.05] text-[#0B0F14] m-0 shrink-0"
+            style={{ fontSize: 'clamp(38px, 4.8vw, 64px)' }}
+          >
+            Structure is available.<br />
+            <span className="text-[#8b9590] font-normal">Targeting is not.</span>
+          </h2>
+
+          <p className="text-[17px] leading-[1.7] text-[#4A554D] m-0 font-normal max-w-[400px] lg:pb-[6px]">
+            Drug discovery is fragmented by design. Every step requires a different
+            tool, a different database, and a manual export.
+          </p>
+        </div>
       </div>
 
-      {/* Problem blocks */}
-      <div
-        className="v3-reveal grid grid-cols-1 gap-px max-w-[760px] rounded-2xl overflow-hidden"
-        style={{ background: 'rgba(11,15,20,0.08)', border: '1px solid rgba(11,15,20,0.08)' }}
-      >
+      {/* Problem rows */}
+      <div style={{ borderTop: '1px solid rgba(11,15,20,0.08)' }}>
         {PROBLEMS.map(({ num, title, desc }) => (
-          <div key={num} className="bg-white px-8 py-7 flex flex-col gap-2">
-            <span className="font-jetbrains text-[11px] text-[#B8C2BD] tracking-[0.04em]">
+          <div
+            key={num}
+            className="v3-reveal group py-10 lg:py-12 flex flex-col gap-4 lg:grid lg:items-start lg:gap-12"
+            style={{
+              borderBottom: '1px solid rgba(11,15,20,0.08)',
+              gridTemplateColumns: '64px 1fr 1.25fr',
+            }}
+          >
+            {/* Number */}
+            <span className="font-jetbrains text-[12px] text-[#B8C2BD] tracking-[0.08em] lg:pt-[5px] shrink-0">
               {num}
             </span>
-            <h3 className="text-[17px] font-medium tracking-[-0.02em] text-[#0B0F14] m-0">
+
+            {/* Title */}
+            <h3 className="text-[20px] lg:text-[22px] font-medium tracking-[-0.025em] text-[#0B0F14] m-0 leading-[1.3]">
               {title}
             </h3>
-            <p className="text-[14.5px] leading-[1.65] text-[#4A554D] m-0 font-normal">
+
+            {/* Description */}
+            <p className="text-[15.5px] leading-[1.72] text-[#4A554D] m-0 font-normal">
               {desc}
             </p>
           </div>
