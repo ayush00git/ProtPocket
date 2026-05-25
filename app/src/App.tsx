@@ -9,6 +9,7 @@ import { MutationPage } from './pages/MutationPage';
 import { Footer } from './components/layout/Footer';
 import { LandingV3 } from './v3/LandingV3';
 import { PlatformPage } from './v3/pages/PlatformPage';
+import { ComplexDetailPageV3 } from './v3/pages/ComplexDetailPageV3';
 
 function LegacyShell() {
   return (
@@ -33,6 +34,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/v3/platform" element={<PlatformPage />} />
+        <Route path="/v3/complex/:id" element={<ComplexDetailPageV3 />} />
         <Route path="/v3/*" element={<LandingV3 />} />
 <Route path="/*" element={<LegacyShell />} />
       </Routes>

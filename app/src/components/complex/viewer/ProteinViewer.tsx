@@ -13,6 +13,8 @@ interface ProteinViewerProps {
   complexConformations?: Conformation[] | null;
   activeModeMonomer?: number | null;
   activeModeComplex?: number | null;
+  /** Override the Mol* canvas theme (e.g. force 'light' in v3 pages) */
+  theme?: string;
 }
 
 interface DockingState {
@@ -30,16 +32,17 @@ interface ActiveHighlight {
  * Supports synchronized conformations (docking results) for both monomer and dimer.
  */
 export const ProteinViewer = forwardRef<ProteinViewerHandle, ProteinViewerProps>(
-  ({ 
-    monomerUrl, 
-    complexUrl, 
-    monomerPlddt, 
-    dimerPlddt, 
+  ({
+    monomerUrl,
+    complexUrl,
+    monomerPlddt,
+    dimerPlddt,
     disorderDelta,
     monomerConformations = null,
     complexConformations = null,
     activeModeMonomer = null,
-    activeModeComplex = null
+    activeModeComplex = null,
+    theme,
   }, ref) => {
     const [isZoomed, setIsZoomed] = useState(false);
     const [activeHighlight, setActiveHighlight] = useState<ActiveHighlight | null>(null);
@@ -150,6 +153,7 @@ export const ProteinViewer = forwardRef<ProteinViewerHandle, ProteinViewerProps>
         representation={representation}
         conformations={mConfs}
         activeMode={mMode}
+        theme={theme}
       />
     );
 
@@ -171,11 +175,28 @@ export const ProteinViewer = forwardRef<ProteinViewerHandle, ProteinViewerProps>
         representation={representation}
         conformations={cConfs}
         activeMode={cMode}
+        theme={theme}
       />
     );
 
+    // When forced to light theme, override all CSS vars so the entire chrome
+    // (controls, legend, overlays, fullscreen view) renders light regardless
+    // of the `dark` class on <html> set by the legacy app.
+    const themeVars = theme === 'light' ? ({
+      '--bg-primary':    '#FFFFFF',
+      '--bg-secondary':  '#F8FAFC',
+      '--bg-tertiary':   '#F1F5F9',
+      '--border':        '#E5E7EB',
+      '--border-subtle': '#E5E7EB',
+      '--text-primary':  '#111827',
+      '--text-secondary':'#374151',
+      '--text-muted':    '#6B7280',
+      '--accent':        '#2563EB',
+      '--accent-dim':    '#DBEAFE',
+    } as React.CSSProperties) : {};
+
     return (
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2" style={themeVars}>
         {expandButton}
 
         <div className={`flex flex-row w-full border border-border rounded overflow-visible ${isZoomed ? 'invisible h-0 overflow-hidden' : ''}`}>

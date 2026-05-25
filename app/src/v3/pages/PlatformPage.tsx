@@ -118,7 +118,7 @@ function ResultCardV3({
   if (layout === 'list') {
     return (
       <div
-        onClick={() => navigate(`/complex/${uniprot_id}`)}
+        onClick={() => navigate(`/v3/complex/${uniprot_id}`)}
         className="flex items-center gap-5 px-5 py-[14px] cursor-pointer"
         style={{
           background: colors.bg,
@@ -151,7 +151,7 @@ function ResultCardV3({
   if (layout === 'grid') {
     return (
       <div
-        onClick={() => navigate(`/complex/${uniprot_id}`)}
+        onClick={() => navigate(`/v3/complex/${uniprot_id}`)}
         className="flex flex-col gap-4 p-5 rounded-[18px] cursor-pointer"
         style={{ background: colors.bg, border: `1px solid ${colors.border}` }}
       >
@@ -184,7 +184,7 @@ function ResultCardV3({
   // ── Card (full) layout ──
   return (
     <div
-      onClick={() => navigate(`/complex/${uniprot_id}`)}
+      onClick={() => navigate(`/v3/complex/${uniprot_id}`)}
       className="flex flex-col gap-5 p-7 rounded-[20px] cursor-pointer"
       style={{ background: colors.bg, border: `1px solid ${colors.border}` }}
     >
@@ -374,8 +374,7 @@ export function PlatformPage() {
 
       <main
         className="mx-auto px-8 pt-[148px] pb-[100px] flex flex-col gap-12 transition-all duration-300"
-        style={{ maxWidth: view === 'grid' && hasResults ? '1100px' : '860px' }}
-
+        style={{ maxWidth: '1400px' }}
       >
         {/* Page header */}
         <div>
@@ -451,7 +450,7 @@ export function PlatformPage() {
                 )}
 
                 {view === 'grid' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     {complexes.map((c) => (
                       <ResultCardV3 key={c.uniprot_id} complex={c} layout="grid" />
                     ))}

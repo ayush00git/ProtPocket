@@ -5,6 +5,7 @@ import { ResultCard } from '../components/search/ResultCard';
 import { LoadingState } from '../components/common/LoadingState';
 import { ErrorState } from '../components/common/ErrorState';
 import { useSearch } from '../hooks/useSearch';
+import type { Complex } from '../types';
 
 export function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -19,6 +20,7 @@ export function SearchPage() {
   const handleSearch = (newQuery: string) => { setSearchParams({ q: newQuery }); };
   const hasSearched = !!query;
   const hasResults = results.length > 0;
+  const complexes = results as unknown as Complex[];
 
   return (
     <div className="w-full flex flex-col items-center">
@@ -35,7 +37,7 @@ export function SearchPage() {
                   <span>source: {source}</span>
                 </div>
                 <div className="flex flex-col gap-3">
-                  {results.map((complex) => (<ResultCard key={complex.uniprot_id} complex={complex} />))}
+                  {complexes.map((complex) => (<ResultCard key={complex.uniprot_id} complex={complex} />))}
                 </div>
               </>
             ) : (
