@@ -1,10 +1,14 @@
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { NavV3 } from '../components/NavV3';
 import { FooterV3 } from '../components/FooterV3';
 import { useComplex } from '../../hooks/useComplex';
 import { useBindingSites } from '../../hooks/useBindingSites';
-import type { Pocket, ProteinViewerHandle, ComparisonData, ScatterDataPoint, Fragment } from '../../types';
+import { useMutationStructures } from '../../hooks/useMutationStructures';
+import { useMutationAnalyze } from '../../hooks/useMutationAnalyze';
+import { MutationViewer } from '../../components/mutation/MutationViewer';
+import { DockingSectionV3 } from '../components/DockingSectionV3';
+import type { Pocket, ProteinViewerHandle, ComparisonData, ScatterDataPoint, Fragment, MutationAnalyzeResult, Conformation, LeaderboardEntry, DockingInfo } from '../../types';
 
 // Lazy-load the heavy Mol* viewer — JS only fetched when first rendered
 const ProteinViewerLazy = React.lazy(
@@ -109,6 +113,8 @@ function PocketCard({
   onHighlight,
   layout = 'grid',
   isLast = false,
+  onStartDocking,
+  isDockingActive = false,
 }: {
   pocket: Pocket;
   index: number;
@@ -116,6 +122,8 @@ function PocketCard({
   onHighlight: (indices: number[]) => void;
   layout?: 'grid' | 'list';
   isLast?: boolean;
+  onStartDocking?: (pocket: Pocket) => void;
+  isDockingActive?: boolean;
 }) {
   const score    = pocket.druggability_score ?? 0;
   const scorePct = Math.min(score * 100, 100);
@@ -142,9 +150,11 @@ function PocketCard({
         <div className="w-[4px] self-stretch shrink-0 rounded-r-full" style={{ background: colors.accent }} />
 
         {/* Pocket # + badges */}
-        <div className="flex items-center gap-2 shrink-0 w-[170px]">
+        <div className="flex flex-col gap-[5px] shrink-0 w-[160px]">
           <span className="text-[13px] font-semibold text-[#0B0F14]">Pocket {pocket.pocket_id}</span>
-          <PocketBadges pocket={pocket} />
+          <div className="flex items-center gap-[5px] flex-wrap">
+            <PocketBadges pocket={pocket} />
+          </div>
         </div>
 
         {/* Score bar + % */}
@@ -173,18 +183,33 @@ function PocketCard({
           ))}
         </div>
 
-        {/* Highlight button */}
-        <button
-          onClick={() => onHighlight(pocket.residue_indices)}
-          className="shrink-0 text-[11px] font-medium tracking-wide px-3 py-[5px] rounded-full transition-colors duration-150"
-          style={
-            isActive
-              ? { background: '#0B0F14', color: 'white', border: '1px solid #0B0F14' }
-              : { background: 'transparent', color: '#4A554D', border: '1px solid rgba(11,15,20,0.16)' }
-          }
-        >
-          {isActive ? 'Clear' : 'Highlight'}
-        </button>
+        {/* Action group */}
+        <div className="flex gap-2 shrink-0">
+          <button
+            onClick={() => onHighlight(pocket.residue_indices)}
+            className="text-[11px] font-medium tracking-wide px-3 py-[5px] rounded-full transition-colors duration-150"
+            style={
+              isActive
+                ? { background: '#0B0F14', color: 'white', border: '1px solid #0B0F14' }
+                : { background: 'transparent', color: '#4A554D', border: '1px solid rgba(11,15,20,0.16)' }
+            }
+          >
+            {isActive ? 'Clear' : 'Highlight'}
+          </button>
+          {onStartDocking && (
+            <button
+              onClick={() => onStartDocking(pocket)}
+              className="text-[11px] font-semibold tracking-wide px-3 py-[5px] rounded-full transition-colors duration-150"
+              style={
+                isDockingActive
+                  ? { background: 'rgba(139,92,246,0.12)', color: '#8b5cf6', border: '1px solid rgba(139,92,246,0.25)' }
+                  : { background: 'rgba(11,15,20,0.03)', color: '#0B0F14', border: '1px solid rgba(11,15,20,0.10)' }
+              }
+            >
+              {isDockingActive ? '● Docking' : 'Dock'}
+            </button>
+          )}
+        </div>
       </div>
     );
   }
@@ -252,7 +277,7 @@ function PocketCard({
           ))}
         </div>
 
-        {/* Residues + highlight button */}
+        {/* Residues + buttons */}
         <div className="flex items-center justify-between gap-3 px-4 py-3">
           <div className="flex flex-wrap gap-1 min-w-0">
             {pocket.residue_names?.slice(0, 8).map((r, i) => (
@@ -271,17 +296,32 @@ function PocketCard({
             )}
           </div>
 
-          <button
-            onClick={() => onHighlight(pocket.residue_indices)}
-            className="shrink-0 text-[11px] font-medium tracking-wide px-3 py-[5px] rounded-full transition-colors duration-150"
-            style={
-              isActive
-                ? { background: '#0B0F14', color: 'white', border: '1px solid #0B0F14' }
-                : { background: 'transparent', color: '#4A554D', border: '1px solid rgba(11,15,20,0.16)' }
-            }
-          >
-            {isActive ? 'Clear' : 'Highlight'}
-          </button>
+          <div className="flex gap-1.5 shrink-0">
+            <button
+              onClick={() => onHighlight(pocket.residue_indices)}
+              className="text-[11px] font-medium tracking-wide px-3 py-[5px] rounded-full transition-colors duration-150"
+              style={
+                isActive
+                  ? { background: '#0B0F14', color: 'white', border: '1px solid #0B0F14' }
+                  : { background: 'transparent', color: '#4A554D', border: '1px solid rgba(11,15,20,0.16)' }
+              }
+            >
+              {isActive ? 'Clear' : 'Highlight'}
+            </button>
+            {onStartDocking && (
+              <button
+                onClick={() => onStartDocking(pocket)}
+                className="text-[11px] font-semibold tracking-wide px-3 py-[5px] rounded-full transition-colors duration-150"
+                style={
+                  isDockingActive
+                    ? { background: 'rgba(139,92,246,0.12)', color: '#8b5cf6', border: '1px solid rgba(139,92,246,0.25)' }
+                    : { background: 'rgba(11,15,20,0.03)', color: '#0B0F14', border: '1px solid rgba(11,15,20,0.10)' }
+                }
+              >
+                {isDockingActive ? '● Active' : 'Dock'}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -532,12 +572,17 @@ function ComparisonV3({
   comparison,
   onHighlight,
   onClearHighlight,
+  onStartDocking,
+  activeDockingPocketId,
 }: {
   comparison: ComparisonData | null;
   onHighlight: (indices: number[], target: string) => void;
   onClearHighlight: (target: string) => void;
+  onStartDocking?: (pocket: Pocket, sourceType: string) => void;
+  activeDockingPocketId?: number;
 }) {
   const [activeKey, setActiveKey] = useState<string | null>(null);
+  const [pocketView, setPocketView] = useState<'grid' | 'list'>('grid');
 
   const handlePocketHighlight = useCallback(
     (indices: number[], key: string, target: string) => {
@@ -565,7 +610,6 @@ function ComparisonV3({
     emergent_pockets, graph_datasets, property_changes, stabilization_stats, fragment_comparison,
   } = comparison;
 
-  const hasScatter   = (graph_datasets?.stabilization_scatter?.length ?? 0) > 0;
   const hasFragments = fragment_comparison &&
     ((fragment_comparison.unique_interface_fragments?.length ?? 0) > 0 ||
      (fragment_comparison.unique_dimer_fragments?.length    ?? 0) > 0);
@@ -577,6 +621,7 @@ function ComparisonV3({
     prefix: string,
     dotColor: string,
     dotBg: string,
+    layout: 'grid' | 'list' = 'grid',
   ) => (
     <div className="flex flex-col gap-4">
       <div className="flex items-start gap-3">
@@ -588,19 +633,40 @@ function ComparisonV3({
         </div>
       </div>
       {pockets && pockets.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-          {pockets.map((pocket, idx) => {
-            const key = `${prefix}-${idx}`;
-            return (
-              <PocketCard key={pocket.pocket_id} pocket={pocket} index={idx} layout="grid"
-                isActive={activeKey === key}
-                onHighlight={(indices) =>
-                  handlePocketHighlight(indices, key, pocket.is_conserved ? 'both' : 'complex')
-                }
-              />
-            );
-          })}
-        </div>
+        layout === 'grid' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            {pockets.map((pocket, idx) => {
+              const key = `${prefix}-${idx}`;
+              return (
+                <PocketCard key={pocket.pocket_id} pocket={pocket} index={idx} layout="grid"
+                  isActive={activeKey === key}
+                  onHighlight={(indices) =>
+                    handlePocketHighlight(indices, key, pocket.is_conserved ? 'both' : 'complex')
+                  }
+                  onStartDocking={onStartDocking ? (p) => onStartDocking(p, pocket.is_conserved ? 'conserved' : 'dimer') : undefined}
+                  isDockingActive={activeDockingPocketId === pocket.pocket_id}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <div className="rounded-[16px] overflow-hidden" style={{ border: '1px solid rgba(11,15,20,0.08)' }}>
+            {pockets.map((pocket, idx) => {
+              const key = `${prefix}-${idx}`;
+              return (
+                <PocketCard key={pocket.pocket_id} pocket={pocket} index={idx} layout="list"
+                  isActive={activeKey === key}
+                  isLast={idx === pockets.length - 1}
+                  onHighlight={(indices) =>
+                    handlePocketHighlight(indices, key, pocket.is_conserved ? 'both' : 'complex')
+                  }
+                  onStartDocking={onStartDocking ? (p) => onStartDocking(p, pocket.is_conserved ? 'conserved' : 'dimer') : undefined}
+                  isDockingActive={activeDockingPocketId === pocket.pocket_id}
+                />
+              );
+            })}
+          </div>
+        )
       ) : (
         <div className="px-5 py-4 rounded-[12px] text-[13px]"
           style={{ background: 'rgba(11,15,20,0.03)', border: '1px solid rgba(11,15,20,0.07)', color: '#7A8580' }}>
@@ -724,16 +790,55 @@ function ComparisonV3({
         </div>
       </div>
 
-      {/* ── 3. Scatter chart ── */}
-      {hasScatter && <ScatterChartV3 data={graph_datasets.stabilization_scatter} />}
+      {/* ── 3. Pocket groups ── */}
+      {/* Pocket groups header with view toggle */}
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.07em] m-0 mb-[3px]" style={{ color: 'rgba(11,15,20,0.38)' }}>
+            Binding sites
+          </p>
+          <h3 className="text-[16px] font-medium text-[#0B0F14] m-0">Pocket Groups</h3>
+        </div>
+        <div className="flex items-center rounded-[8px] p-[3px] gap-[2px]" style={{ background: 'rgba(11,15,20,0.05)' }}>
+          {([
+            { mode: 'grid' as const, title: 'Grid view',
+              icon: <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <rect x="1" y="1" width="5" height="5" rx="1.5" fill="currentColor"/>
+                <rect x="8" y="1" width="5" height="5" rx="1.5" fill="currentColor"/>
+                <rect x="1" y="8" width="5" height="5" rx="1.5" fill="currentColor"/>
+                <rect x="8" y="8" width="5" height="5" rx="1.5" fill="currentColor"/>
+              </svg> },
+            { mode: 'list' as const, title: 'List view',
+              icon: <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <rect x="1" y="2"  width="12" height="1.5" rx="0.75" fill="currentColor"/>
+                <rect x="1" y="6"  width="12" height="1.5" rx="0.75" fill="currentColor"/>
+                <rect x="1" y="10" width="12" height="1.5" rx="0.75" fill="currentColor"/>
+              </svg> },
+          ] as const).map(({ mode, title, icon }) => (
+            <button
+              key={mode}
+              onClick={() => setPocketView(mode)}
+              title={title}
+              className="w-[28px] h-[24px] rounded-[6px] flex items-center justify-center transition-colors duration-150"
+              style={{
+                background:  pocketView === mode ? 'white' : 'transparent',
+                boxShadow:   pocketView === mode ? '0 1px 3px rgba(11,15,20,0.1)' : 'none',
+                color:       pocketView === mode ? '#0B0F14' : 'rgba(11,15,20,0.35)',
+              }}
+            >
+              {icon}
+            </button>
+          ))}
+        </div>
+      </div>
 
-      {/* ── 4–6. Pocket groups ── */}
       {renderPocketGroup(
         'True Interface Drug Targets',
         'Pockets spanning multiple chains at the dimer interaction surface.',
         interface_pockets,
         'int',
         '#10b981', 'rgba(16,185,129,0.12)',
+        pocketView,
       )}
 
       {renderPocketGroup(
@@ -742,6 +847,7 @@ function ComparisonV3({
         conserved_pockets,
         'con',
         '#ca8a04', 'rgba(234,179,8,0.12)',
+        pocketView,
       )}
 
       {renderPocketGroup(
@@ -750,6 +856,7 @@ function ComparisonV3({
         emergent_pockets,
         'emg',
         '#8b5cf6', 'rgba(139,92,246,0.12)',
+        pocketView,
       )}
 
       {/* ── 7. Fragment comparison ── */}
@@ -968,12 +1075,16 @@ function BindingSitesV3({
   onClearHighlight,
   monomerUrl,
   complexUrl,
+  onStartDocking,
+  activeDockingPocketId,
 }: {
   complexId: string | undefined;
   onHighlight: (indices: number[], target: string) => void;
   onClearHighlight: (target: string) => void;
   monomerUrl: string;
   complexUrl: string;
+  onStartDocking?: (pocket: Pocket, sourceType: string) => void;
+  activeDockingPocketId?: number;
 }) {
   const [tab, setTab] = useState<SiteTab>('monomer');
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
@@ -1125,6 +1236,8 @@ function BindingSitesV3({
           comparison={comparison}
           onHighlight={onHighlight}
           onClearHighlight={onClearHighlight}
+          onStartDocking={onStartDocking}
+          activeDockingPocketId={activeDockingPocketId}
         />
       )}
 
@@ -1137,7 +1250,9 @@ function BindingSitesV3({
                 {displayed.map((pocket, idx) => (
                   <PocketCard key={pocket.pocket_id} pocket={pocket} index={idx} layout="grid"
                     isActive={activeIdx === idx}
-                    onHighlight={(indices) => handleHighlight(indices, idx)} />
+                    onHighlight={(indices) => handleHighlight(indices, idx)}
+                    onStartDocking={onStartDocking ? (p) => onStartDocking(p, tab === 'monomer' ? 'monomer' : 'dimer') : undefined}
+                    isDockingActive={activeDockingPocketId === pocket.pocket_id} />
                 ))}
               </div>
             ) : (
@@ -1146,7 +1261,9 @@ function BindingSitesV3({
                   <PocketCard key={pocket.pocket_id} pocket={pocket} index={idx} layout="list"
                     isActive={activeIdx === idx}
                     isLast={idx === displayed.length - 1}
-                    onHighlight={(indices) => handleHighlight(indices, idx)} />
+                    onHighlight={(indices) => handleHighlight(indices, idx)}
+                    onStartDocking={onStartDocking ? (p) => onStartDocking(p, tab === 'monomer' ? 'monomer' : 'dimer') : undefined}
+                    isDockingActive={activeDockingPocketId === pocket.pocket_id} />
                 ))}
               </div>
             )
@@ -1192,6 +1309,319 @@ function BindingSitesV3({
   );
 }
 
+// ── Inline Mutation Form (v3-native) ─────────────────────────────────────────
+
+const MUTATION_EXAMPLES = ['T790M', 'G12C', 'T315I'];
+
+function InlineMutationForm({
+  uniprotId,
+  mutation,
+  onMutationChange,
+  onSubmit,
+  onReset,
+  loading,
+  hasRun,
+}: {
+  uniprotId: string;
+  mutation: string;
+  onMutationChange: (v: string) => void;
+  onSubmit: (e: React.FormEvent) => void;
+  onReset: () => void;
+  loading: boolean;
+  hasRun: boolean;
+}) {
+  const canSubmit = mutation.trim().length > 0 && !loading;
+  return (
+    <div className="flex flex-col gap-4">
+      <div
+        className="flex items-center justify-between flex-wrap gap-4 pb-5"
+        style={{ borderBottom: '1px solid rgba(11,15,20,0.07)' }}
+      >
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.07em] m-0 mb-1" style={{ color: 'rgba(11,15,20,0.38)' }}>
+            Point mutation
+          </p>
+          <h2 className="font-medium tracking-[-0.025em] text-[#0B0F14] m-0" style={{ fontSize: '22px' }}>
+            Mutation Impact Analysis
+          </h2>
+          <p className="text-[14px] text-[#7A8580] m-0 mt-1">
+            Predict how a point mutation affects pocket druggability for{' '}
+            <span className="font-mono font-semibold text-[#0B0F14]">{uniprotId}</span>
+          </p>
+        </div>
+        {hasRun && (
+          <button
+            onClick={onReset}
+            className="text-[11px] uppercase tracking-[0.05em] transition-opacity duration-150 hover:opacity-60"
+            style={{ color: '#4A554D' }}
+          >
+            ← New mutation
+          </button>
+        )}
+      </div>
+
+      <form onSubmit={onSubmit} className="flex flex-col gap-3">
+        {/* UniProt ID — read-only display */}
+        <div className="flex flex-col gap-1">
+          <label className="text-[10.5px] uppercase tracking-[0.07em]" style={{ color: 'rgba(11,15,20,0.38)' }}>
+            UniProt ID
+          </label>
+          <div
+            className="flex items-center gap-2 px-4 py-[10px] rounded-[10px] font-mono text-[14px]"
+            style={{ background: 'rgba(11,15,20,0.04)', border: '1px solid rgba(11,15,20,0.08)', color: '#0B0F14' }}
+          >
+            {uniprotId}
+            <span
+              className="text-[10px] uppercase tracking-[0.05em] px-[8px] py-[2px] rounded-full"
+              style={{ background: 'rgba(11,15,20,0.07)', color: 'rgba(11,15,20,0.40)' }}
+            >
+              Pre-filled
+            </span>
+          </div>
+        </div>
+
+        {/* Mutation input */}
+        <div className="flex flex-col gap-1">
+          <label className="text-[10.5px] uppercase tracking-[0.07em]" style={{ color: 'rgba(11,15,20,0.38)' }}>
+            Mutation
+          </label>
+          <input
+            type="text"
+            value={mutation}
+            onChange={e => onMutationChange(e.target.value)}
+            placeholder="e.g. T790M or EGFR T790M"
+            disabled={loading}
+            className="text-[14px] font-mono px-4 py-3 rounded-[10px] outline-none w-full transition-colors duration-150 disabled:opacity-50"
+            style={{ background: 'white', border: '1px solid rgba(11,15,20,0.12)', color: '#0B0F14' }}
+          />
+        </div>
+
+        <div className="flex items-center justify-between flex-wrap gap-3 pt-1">
+          <button
+            type="submit"
+            disabled={!canSubmit}
+            className="text-[12px] font-medium uppercase tracking-[0.07em] px-5 py-[9px] rounded-full transition-colors duration-150 disabled:opacity-40"
+            style={
+              canSubmit
+                ? { background: '#0B0F14', color: 'white', border: '1px solid #0B0F14' }
+                : { background: 'rgba(11,15,20,0.06)', color: 'rgba(11,15,20,0.30)', border: '1px solid rgba(11,15,20,0.08)' }
+            }
+          >
+            {loading ? 'Analyzing…' : 'Analyze Mutation'}
+          </button>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] uppercase tracking-[0.07em]" style={{ color: 'rgba(11,15,20,0.35)' }}>
+              Try:
+            </span>
+            {MUTATION_EXAMPLES.map(ex => (
+              <button
+                key={ex}
+                type="button"
+                disabled={loading}
+                onClick={() => onMutationChange(ex)}
+                className="text-[11px] font-mono px-[10px] py-[4px] rounded-full transition-colors duration-150 disabled:opacity-40"
+                style={{ background: 'rgba(11,15,20,0.04)', color: '#4A554D', border: '1px solid rgba(11,15,20,0.10)' }}
+              >
+                {ex}
+              </button>
+            ))}
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+// ── Inline Mutation Result Card (v3-native) ───────────────────────────────────
+
+function InlineMutationResultCard({ result }: { result: MutationAnalyzeResult }) {
+  const { uniprot_id, mutation, alphamissense, structures, pockets, druggability_shift } = result;
+  const { score, classification, confidence } = druggability_shift;
+
+  const amColors: Record<string, { bg: string; color: string; border: string }> = {
+    pathogenic: { bg: 'rgba(220,38,38,0.07)',  color: '#DC2626', border: 'rgba(220,38,38,0.22)'  },
+    ambiguous:  { bg: 'rgba(245,158,11,0.09)', color: '#B45309', border: 'rgba(245,158,11,0.25)' },
+    benign:     { bg: 'rgba(11,15,20,0.04)',   color: '#7A8580', border: 'rgba(11,15,20,0.12)'   },
+  };
+  const amStyle = amColors[alphamissense.am_class] ?? amColors.ambiguous;
+
+  const dssColor = score >= 0.15 ? '#047857' : score >= -0.15 ? '#7A8580' : score >= -0.5 ? '#B45309' : '#DC2626';
+  const dssLabel = ({
+    pocket_improved:     'Pocket Improved',
+    pocket_unchanged:    'Pocket Unchanged',
+    pocket_degraded:     'Pocket Degraded',
+    pocket_collapsed:    'Pocket Collapsed',
+    new_pocket_detected: 'New Pocket Detected',
+  } as Record<string, string>)[classification] ?? classification;
+
+  const positionPct = ((score + 1) / 2) * 100;
+  const fillLeft    = score >= 0 ? 50 : positionPct;
+  const fillWidth   = Math.abs(positionPct - 50);
+
+  return (
+    <div className="rounded-[16px] overflow-hidden" style={{ border: '1px solid rgba(11,15,20,0.08)' }}>
+      {/* Header */}
+      <div
+        className="flex items-center flex-wrap gap-3 px-5 py-4"
+        style={{ background: '#FAFBFA', borderBottom: '1px solid rgba(11,15,20,0.07)' }}
+      >
+        <span className="font-mono text-[13px] font-semibold text-[#0B0F14]">{uniprot_id}</span>
+        <span className="font-mono text-[13px]" style={{ color: '#7A8580' }}>
+          {mutation.gene && <>{mutation.gene}{' '}</>}
+          <span style={{ color: 'rgba(11,15,20,0.40)' }}>{mutation.wildtype_aa}</span>
+          <span className="font-semibold text-[#0B0F14]">{mutation.position}</span>
+          <span style={{ color: 'rgba(11,15,20,0.40)' }}>{mutation.mutant_aa}</span>
+        </span>
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-[10px] uppercase tracking-[0.07em]" style={{ color: 'rgba(11,15,20,0.35)' }}>
+            AlphaMissense
+          </span>
+          <span
+            className="text-[10.5px] uppercase tracking-[0.05em] px-[10px] py-[3px] rounded-full"
+            style={{ background: amStyle.bg, color: amStyle.color, border: `1px solid ${amStyle.border}` }}
+          >
+            {alphamissense.am_class}
+          </span>
+          <span className="font-mono text-[12px] tabular-nums" style={{ color: '#4A554D' }}>
+            {alphamissense.am_pathogenicity.toFixed(4)}
+          </span>
+        </div>
+      </div>
+
+      {/* DSS Score bar */}
+      <div className="px-5 py-4 flex flex-col gap-3" style={{ borderBottom: '1px solid rgba(11,15,20,0.07)' }}>
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] uppercase tracking-[0.07em]" style={{ color: 'rgba(11,15,20,0.38)' }}>
+            Druggability Shift Score
+          </span>
+          <span
+            className="text-[10.5px] uppercase tracking-[0.05em] px-[10px] py-[3px] rounded-full"
+            style={
+              confidence === 'high'
+                ? { background: 'rgba(16,185,129,0.08)', color: '#047857', border: '1px solid rgba(16,185,129,0.22)' }
+                : { background: 'rgba(245,158,11,0.09)', color: '#B45309', border: '1px solid rgba(245,158,11,0.25)' }
+            }
+          >
+            {confidence} confidence
+          </span>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <span className="text-[10px] font-mono w-4 text-right" style={{ color: 'rgba(11,15,20,0.38)' }}>−1</span>
+          <div className="relative flex-1 h-[6px] rounded-full overflow-hidden" style={{ background: 'rgba(11,15,20,0.08)' }}>
+            <div
+              className="absolute top-0 left-1/2 w-px h-full z-10"
+              style={{ background: 'rgba(11,15,20,0.20)', transform: 'translateX(-50%)' }}
+            />
+            <div
+              className="absolute top-0 h-full rounded-full transition-all duration-300"
+              style={{ left: `${fillLeft}%`, width: `${Math.max(fillWidth, 0.5)}%`, background: dssColor }}
+            />
+          </div>
+          <span className="text-[10px] font-mono w-4" style={{ color: 'rgba(11,15,20,0.38)' }}>+1</span>
+          <span className="text-[20px] font-semibold font-mono w-[76px] text-right tabular-nums" style={{ color: dssColor }}>
+            {score >= 0 ? '+' : ''}{score.toFixed(3)}
+          </span>
+        </div>
+
+        <span
+          className="text-[10.5px] uppercase tracking-[0.05em] self-start px-[10px] py-[3px] rounded-full"
+          style={
+            score >= 0.15
+              ? { background: 'rgba(16,185,129,0.08)', color: '#047857', border: '1px solid rgba(16,185,129,0.22)' }
+              : score >= -0.15
+              ? { background: 'rgba(11,15,20,0.04)',   color: '#7A8580', border: '1px solid rgba(11,15,20,0.10)'   }
+              : score >= -0.5
+              ? { background: 'rgba(245,158,11,0.09)', color: '#B45309', border: '1px solid rgba(245,158,11,0.25)' }
+              : { background: 'rgba(220,38,38,0.07)',  color: '#DC2626', border: '1px solid rgba(220,38,38,0.22)'  }
+          }
+        >
+          {dssLabel}
+        </span>
+      </div>
+
+      {/* Approximation warning */}
+      {structures.mutant_is_approximation && (
+        <div
+          className="mx-5 my-3 px-4 py-3 rounded-[10px] text-[13px] leading-relaxed"
+          style={{ background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.22)', color: '#B45309' }}
+        >
+          <span className="font-medium">Note: </span>
+          No experimental mutant structure found. Using wildtype AlphaFold as backbone approximation.
+          Pocket geometry deltas are zero; DSS is weighted primarily by AlphaMissense. Confidence: low.
+        </div>
+      )}
+
+      {/* Pocket geometry table */}
+      <div className="px-5 py-4 flex flex-col gap-3">
+        <span className="text-[11px] uppercase tracking-[0.07em]" style={{ color: 'rgba(11,15,20,0.38)' }}>
+          Pocket Geometry
+        </span>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr>
+                {['Metric', 'Wildtype', 'Mutant', 'Δ'].map((h, i) => (
+                  <th
+                    key={h}
+                    className="pb-2 text-[10px] uppercase tracking-[0.06em]"
+                    style={{ color: 'rgba(11,15,20,0.38)', textAlign: i === 0 ? 'left' : 'right', paddingRight: i < 3 ? '24px' : '0' }}
+                  >
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { label: 'Druggability',   wt: pockets.wildtype_top_pocket.druggability_score, mut: pockets.mutant_top_pocket.druggability_score, delta: pockets.pocket_delta.druggability_score, dec: 3, good: true  },
+                { label: 'Volume (Å³)',    wt: pockets.wildtype_top_pocket.volume,              mut: pockets.mutant_top_pocket.volume,              delta: pockets.pocket_delta.volume,              dec: 0, good: true  },
+                { label: 'Surface (Å²)',   wt: pockets.wildtype_top_pocket.surface_area,        mut: pockets.mutant_top_pocket.surface_area,        delta: pockets.pocket_delta.surface_area,        dec: 0, good: true  },
+                { label: 'Hydrophobicity', wt: pockets.wildtype_top_pocket.hydrophobicity,      mut: pockets.mutant_top_pocket.hydrophobicity,      delta: pockets.pocket_delta.hydrophobicity,      dec: 2, good: false },
+              ].map(({ label, wt, mut, delta, dec, good }) => {
+                const dColor = Math.abs(delta) < 0.001
+                  ? 'rgba(11,15,20,0.35)'
+                  : (good ? delta > 0 : delta < 0) ? '#047857' : '#DC2626';
+                return (
+                  <tr key={label} style={{ borderTop: '1px solid rgba(11,15,20,0.07)' }}>
+                    <td className="py-[9px] pr-6 text-[11px] uppercase tracking-[0.05em] whitespace-nowrap" style={{ color: 'rgba(11,15,20,0.45)' }}>
+                      {label}
+                    </td>
+                    <td className="py-[9px] pr-6 font-mono text-[13px] text-right text-[#0B0F14] tabular-nums">{wt.toFixed(dec)}</td>
+                    <td className="py-[9px] pr-6 font-mono text-[13px] text-right text-[#0B0F14] tabular-nums">{mut.toFixed(dec)}</td>
+                    <td className="py-[9px] font-mono text-[13px] text-right tabular-nums" style={{ color: dColor }}>
+                      {delta >= 0 ? '+' : ''}{delta.toFixed(dec)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="flex items-center gap-2 pt-1">
+          <span className="text-[10px] uppercase tracking-[0.07em]" style={{ color: 'rgba(11,15,20,0.38)' }}>
+            Mutant structure
+          </span>
+          <span
+            className="text-[10.5px] uppercase tracking-[0.05em] px-[10px] py-[3px] rounded-full"
+            style={
+              structures.mutant_is_approximation
+                ? { background: 'rgba(245,158,11,0.09)', color: '#B45309', border: '1px solid rgba(245,158,11,0.25)' }
+                : { background: 'rgba(16,185,129,0.08)', color: '#047857', border: '1px solid rgba(16,185,129,0.22)' }
+            }
+          >
+            {structures.mutant_is_approximation
+              ? 'AlphaFold approx.'
+              : structures.mutant_source === 'rcsb_experimental' ? 'RCSB Experimental' : structures.mutant_source}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export function ComplexDetailPageV3() {
@@ -1200,13 +1630,152 @@ export function ComplexDetailPageV3() {
   const { complex, loading, error } = useComplex(id);
   const viewerRef = React.useRef<ProteinViewerHandle>(null);
 
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [selectedEntry, setSelectedEntry] = useState<LeaderboardEntry | null>(null);
+  const [activeDocking, setActiveDocking] = useState<(DockingInfo & { activeTab?: string }) | null>(null);
+
   const handleHighlight = useCallback((indices: number[], target: string) => {
     viewerRef.current?.highlightPocket?.(indices, target);
   }, []);
+
   const handleClearHighlight = useCallback((target: string) => {
     viewerRef.current?.clearPocketHighlight?.();
     viewerRef.current?.clearConformations?.(target);
   }, []);
+
+  const handleStartDocking = useCallback((pocket: Pocket, sourceType: string) => {
+    const proteinPdbId = sourceType === 'monomer'
+      ? complex?.monomer_structure_url?.replace(/\.cif$/i, '.pdb') || ''
+      : complex?.complex_structure_url?.replace(/\.cif$/i, '.pdb') || complex?.uniprot_id || '';
+
+    const info: DockingInfo & { activeTab?: string } = {
+      pocket,
+      sourceType,
+      proteinPdbId,
+      activeTab: sourceType === 'monomer' ? 'monomer' : 'complex'
+    };
+
+    if (activeDocking?.pocket?.pocket_id === pocket.pocket_id && activeDocking?.sourceType === sourceType) {
+      viewerRef.current?.clearConformations?.('both');
+      setActiveDocking(null);
+      return;
+    }
+    viewerRef.current?.clearConformations?.('both');
+    setActiveDocking(info);
+    setSelectedEntry(null);
+  }, [activeDocking, complex]);
+
+  const handleDockingComplete = useCallback((result: { pocketId: number; sourceType: string; fragmentId: string; fragmentName: string; smiles: string; bindingAffinity: number; conformations: Conformation[]; timestamp: number }) => {
+    const entryId = `${result.sourceType}-${result.pocketId}-${result.fragmentId}-${Date.now()}`;
+    const newEntry: LeaderboardEntry = { ...result, id: entryId };
+    setLeaderboard((prev) => {
+      if (prev.some(e => e.pocketId === result.pocketId && e.fragmentId === result.fragmentId && e.sourceType === result.sourceType)) return prev;
+      return [...prev, newEntry];
+    });
+    setSelectedEntry(newEntry);
+    setActiveDocking(null);
+    viewerRef.current?.clearConformations?.('both');
+    const target = result.sourceType === 'monomer' ? 'monomer' : 'complex';
+    if (result.conformations?.length) { viewerRef.current?.setConformations?.(result.conformations, 1, target); }
+  }, []);
+
+  const handleUndock = useCallback(() => {
+    viewerRef.current?.clearConformations?.('both');
+    viewerRef.current?.clearPocketHighlight?.();
+  }, []);
+
+  const handleCloseDocking = useCallback(() => {
+    handleUndock();
+    setActiveDocking(null);
+  }, [handleUndock]);
+
+  const handleLeaderboardSelect = useCallback((entry: LeaderboardEntry) => {
+    setSelectedEntry(entry);
+    setActiveDocking(null);
+    viewerRef.current?.clearConformations?.('both');
+    const target = entry.sourceType === 'monomer' ? 'monomer' : 'complex';
+    if (entry.conformations?.length) { viewerRef.current?.setConformations?.(entry.conformations, 1, target); }
+  }, []);
+
+  const handleLeaderboardRemove = useCallback((entryId: string) => {
+    setLeaderboard((prev) => prev.filter(e => e.id !== entryId));
+    setSelectedEntry((prev) => prev?.id === entryId ? null : prev);
+  }, []);
+
+  const handleConformationSelect = useCallback((entry: LeaderboardEntry, mode: number) => {
+    const target = entry.sourceType === 'monomer' ? 'monomer' : 'complex';
+    if (entry.conformations?.length) { viewerRef.current?.setConformations?.(entry.conformations, mode, target); }
+  }, []);
+
+  const handleConformationChange = useCallback((confs: Conformation[] | null, mode: number | null) => {
+    const target = activeDocking?.activeTab === 'monomer' ? 'monomer' : 'complex';
+    if (confs && mode != null) {
+      viewerRef.current?.setConformations?.(confs, mode, target);
+    } else {
+      viewerRef.current?.clearConformations?.(target);
+    }
+  }, [activeDocking]);
+
+  // ── Mutation analysis (inline) ───────────────────────────────────────────────
+  const [showMutation, setShowMutation] = useState(false);
+  const [mutationInput, setMutationInput] = useState('');
+  const mutationSectionRef = useRef<HTMLDivElement>(null);
+  const mutationPendingRef = useRef<{ uniprotId: string; mutation: string } | null>(null);
+
+  const {
+    structures: mutStructures,
+    loading: structuresLoading,
+    error: structuresError,
+    fetchStructures,
+    reset: resetStructures,
+  } = useMutationStructures();
+
+  const {
+    result: mutationResult,
+    loading: analysisLoading,
+    error: analysisError,
+    analyze,
+    reset: resetAnalysis,
+  } = useMutationAnalyze();
+
+  // Two-phase orchestration: once structures arrive, auto-kick off analysis
+  useEffect(() => {
+    if (!mutStructures || !mutationPendingRef.current) return;
+    const { uniprotId, mutation } = mutationPendingRef.current;
+    analyze(uniprotId, mutation, mutStructures);
+  }, [mutStructures, analyze]);
+
+  const isMutationLoading = structuresLoading || analysisLoading;
+
+  const handleMutationOpen = useCallback(() => {
+    setShowMutation(true);
+    // Give React one tick to mount the section, then scroll to it
+    setTimeout(() => {
+      mutationSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 60);
+  }, []);
+
+  const handleMutationSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mutationInput.trim() || isMutationLoading || !complex) return;
+    mutationPendingRef.current = { uniprotId: complex.uniprot_id, mutation: mutationInput.trim() };
+    resetAnalysis();
+    fetchStructures(complex.uniprot_id, mutationInput.trim());
+  }, [mutationInput, isMutationLoading, complex, resetAnalysis, fetchStructures]);
+
+  const handleMutationInputChange = useCallback((v: string) => {
+    setMutationInput(v);
+    mutationPendingRef.current = null;
+    resetStructures();
+    resetAnalysis();
+  }, [resetStructures, resetAnalysis]);
+
+  const handleMutationReset = useCallback(() => {
+    mutationPendingRef.current = null;
+    resetStructures();
+    resetAnalysis();
+    setMutationInput('');
+  }, [resetStructures, resetAnalysis]);
 
   // Derived display values
   const drugVariant: TagVariant | null = !complex ? null
@@ -1239,14 +1808,14 @@ export function ComplexDetailPageV3() {
             </svg>
             Back to results
           </button>
-          {id && (
-            <a
-              href={`/v3/platform?q=${encodeURIComponent(id)}`}
-              className="text-[11.5px] uppercase tracking-[0.05em] no-underline transition-opacity duration-150 hover:opacity-60"
-              style={{ color: '#4A554D' }}
+          {complex && (
+            <button
+              onClick={handleMutationOpen}
+              className="inline-flex items-center gap-1.5 text-[11.5px] uppercase tracking-[0.05em] transition-opacity duration-150 hover:opacity-60"
+              style={{ color: showMutation ? '#047857' : '#4A554D' }}
             >
-              Analyze mutation →
-            </a>
+              {showMutation ? '↓ Mutation analysis' : 'Analyze mutation →'}
+            </button>
           )}
         </div>
 
@@ -1432,7 +2001,97 @@ export function ComplexDetailPageV3() {
                 onClearHighlight={handleClearHighlight}
                 monomerUrl={complex.monomer_structure_url?.replace(/\.cif$/i, '.pdb') || ''}
                 complexUrl={complex.complex_structure_url?.replace(/\.cif$/i, '.pdb') || complex.uniprot_id || ''}
+                onStartDocking={handleStartDocking}
+                activeDockingPocketId={activeDocking?.pocket?.pocket_id}
               />
+            )}
+
+            {/* ── Vina Docking Section ── */}
+            {!loading && complex && (
+              <DockingSectionV3
+                complexId={id}
+                activeDocking={activeDocking}
+                leaderboard={leaderboard}
+                selectedEntry={selectedEntry}
+                onDockingComplete={handleDockingComplete}
+                onConformationChange={handleConformationChange}
+                onUndock={handleUndock}
+                onCloseDocking={handleCloseDocking}
+                onSelectLeaderboardEntry={handleLeaderboardSelect}
+                onRemoveLeaderboardEntry={handleLeaderboardRemove}
+              />
+            )}
+            {/* ── Inline Mutation Analysis ── */}
+            {showMutation && complex && (
+              <div ref={mutationSectionRef} className="flex flex-col gap-6">
+                <InlineMutationForm
+                  uniprotId={complex.uniprot_id}
+                  mutation={mutationInput}
+                  onMutationChange={handleMutationInputChange}
+                  onSubmit={handleMutationSubmit}
+                  onReset={handleMutationReset}
+                  loading={isMutationLoading}
+                  hasRun={!!(mutStructures || structuresError)}
+                />
+
+                {/* Phase 1: fetching structures */}
+                {structuresLoading && (
+                  <div className="flex items-center gap-3 py-8 justify-center">
+                    <div
+                      className="w-4 h-4 rounded-full border-2 animate-spin"
+                      style={{ borderColor: 'rgba(11,15,20,0.12)', borderTopColor: '#0B0F14' }}
+                    />
+                    <span className="text-[14px]" style={{ color: '#7A8580' }}>
+                      Fetching wildtype and mutant structures…
+                    </span>
+                  </div>
+                )}
+
+                {/* Structure error */}
+                {!structuresLoading && structuresError && (
+                  <div
+                    className="px-5 py-4 rounded-[12px] text-[14px]"
+                    style={{ background: 'rgba(220,38,38,0.05)', border: '1px solid rgba(220,38,38,0.14)', color: '#DC2626' }}
+                  >
+                    {structuresError}
+                  </div>
+                )}
+
+                {/* Phases 2 + 3: structures loaded */}
+                {mutStructures && !structuresError && (
+                  <div className="flex flex-col gap-6">
+                    <MutationViewer structures={mutStructures} />
+
+                    {/* Phase 2: running pocket analysis */}
+                    {analysisLoading && (
+                      <div className="flex items-center gap-3 py-8 justify-center">
+                        <div
+                          className="w-4 h-4 rounded-full border-2 animate-spin"
+                          style={{ borderColor: 'rgba(11,15,20,0.12)', borderTopColor: '#0B0F14' }}
+                        />
+                        <span className="text-[14px]" style={{ color: '#7A8580' }}>
+                          Running pocket analysis and computing Druggability Shift Score…
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Analysis error */}
+                    {!analysisLoading && analysisError && (
+                      <div
+                        className="px-5 py-4 rounded-[12px] text-[14px]"
+                        style={{ background: 'rgba(220,38,38,0.05)', border: '1px solid rgba(220,38,38,0.14)', color: '#DC2626' }}
+                      >
+                        {analysisError}
+                      </div>
+                    )}
+
+                    {/* Phase 3: results */}
+                    {!analysisLoading && !analysisError && mutationResult && (
+                      <InlineMutationResultCard result={mutationResult} />
+                    )}
+                  </div>
+                )}
+              </div>
             )}
           </>
         )}
