@@ -7,7 +7,7 @@ import { ComplexDetailPage } from './pages/ComplexDetailPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { MutationPage } from './pages/MutationPage';
 import { Footer } from './components/layout/Footer';
-import { LandingV3 } from './v3/LandingV3';
+import { Landing } from './v3/Landing';
 import { PlatformPage } from './v3/pages/PlatformPage';
 import { ComplexDetailPageV3 } from './v3/pages/ComplexDetailPageV3';
 
@@ -35,7 +35,7 @@ function App() {
       <Routes>
         <Route path="/v3/platform" element={<PlatformPage />} />
         <Route path="/v3/complex/:id" element={<ComplexDetailPageV3 />} />
-        <Route path="/v3/*" element={<LandingV3 />} />
+        <Route path="/v3/*" element={<Landing />} />
 <Route path="/*" element={<LegacyShell />} />
       </Routes>
     </Router>
