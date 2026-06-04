@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -92,11 +93,14 @@ func (s *JobStore) runJob(ctx context.Context, jobID string, pocket models.Pocke
 	}
 
 	// 3. Prepare ligand 3D from SMILES
+	log.Printf("[dock:%s] SMILES input: %s", jobID[:8], ligand.SMILES)
 	ligPDB, err := SMILESTo3D(ligand.SMILES, tmpDir)
 	if err != nil {
 		s.updateError(jobID, fmt.Errorf("ligand 3D generation failed: %w", err))
 		return
 	}
+	log.Printf("[dock:%s] ligand 3D PDB: %s", jobID[:8], ligPDB)
+	logFileHead("ligand PDB", ligPDB, jobID)
 
 	// 4. Prepare files for Vina (PDBQT conversion)
 	receptorPDBQT, err := PrepareReceptor(localProteinPath, tmpDir)
@@ -104,18 +108,25 @@ func (s *JobStore) runJob(ctx context.Context, jobID string, pocket models.Pocke
 		s.updateError(jobID, fmt.Errorf("receptor prep failed: %w", err))
 		return
 	}
+	logFileHead("receptor PDBQT (after strip)", receptorPDBQT, jobID)
+
 	ligandPDBQT, err := PrepareLigand(ligPDB, tmpDir)
 	if err != nil {
 		s.updateError(jobID, fmt.Errorf("ligand prep failed: %w", err))
 		return
 	}
+	logFileHead("ligand PDBQT", ligandPDBQT, jobID)
 
 	// 5. Run Vina
+	log.Printf("[dock:%s] Running Vina: receptor=%s ligand=%s center=%.1f,%.1f,%.1f",
+		jobID[:8], receptorPDBQT, ligandPDBQT,
+		pocket.Center[0], pocket.Center[1], pocket.Center[2])
 	res, err := RunVinaDock(receptorPDBQT, ligandPDBQT, pocket, tmpDir)
 	if err != nil {
 		s.updateError(jobID, fmt.Errorf("docking run failed: %w", err))
 		return
 	}
+	log.Printf("[dock:%s] Vina complete: affinity=%.2f", jobID[:8], res.BindingAffinity)
 
 	// 6. Read final pose PDB to return to client
 	poseContent, err := os.ReadFile(res.DockedPDB)
@@ -195,4 +206,21 @@ func downloadFile(ctx context.Context, url, dest string) error {
 	defer f.Close()
 	_, err = io.Copy(f, resp.Body)
 	return err
+}
+
+// logFileHead prints the first N lines of a file for debugging docking PDBQT issues.
+func logFileHead(label, path, jobID string) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		log.Printf("[dock:%s] %s: read error: %v", jobID[:8], label, err)
+		return
+	}
+	lines := strings.SplitN(string(data), "\n", 16) // first 15 lines + remainder
+	if len(lines) > 15 {
+		lines = lines[:15]
+	}
+	log.Printf("[dock:%s] === %s (%d bytes, showing first %d lines) ===", jobID[:8], label, len(data), len(lines))
+	for i, l := range lines {
+		log.Printf("[dock:%s]   %d: %s", jobID[:8], i+1, l)
+	}
 }
