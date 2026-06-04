@@ -7,7 +7,7 @@ import { createRoot } from 'react-dom/client';
 import { StructureSelection } from 'molstar/lib/mol-model/structure';
 import { Script } from 'molstar/lib/mol-script/script';
 
-import 'molstar/lib/mol-plugin-ui/skin/dark.scss';
+import 'molstar/lib/mol-plugin-ui/skin/light.scss';
 
 import type { Conformation } from '../../../types';
 
@@ -86,12 +86,12 @@ export function useMolstar({
         // Set background matching site theme
         const bgColor = canvasBackground !== undefined
           ? Color(canvasBackground)
-          : theme === 'dark' ? Color(0x0a0a0a) : Color(0xffffff);
+          : Color(0xffffff);
         spec.canvas3d = {
           renderer: {
             backgroundColor: bgColor,
-            selectColor: theme === 'dark' ? Color(0x4ade80) : Color(0x2563eb),
-            highlightColor: theme === 'dark' ? Color(0x4ade80) : Color(0x2563eb),
+            selectColor: Color(0x2563eb),
+            highlightColor: Color(0x2563eb),
           },
         };
 
@@ -182,8 +182,8 @@ export function useMolstar({
   useEffect(() => {
     if (!pluginRef.current || !pluginRef.current.isInitialized) return;
 
-    const bgColor = theme === 'dark' ? Color(0x0a0a0a) : Color(0xffffff);
-    const accentColor = theme === 'dark' ? Color(0x4ade80) : Color(0x2563eb);
+    const bgColor = Color(0xffffff);
+    const accentColor = Color(0x2563eb);
 
     pluginRef.current.canvas3d?.setProps({
       renderer: {

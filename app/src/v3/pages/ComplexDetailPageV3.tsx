@@ -1969,7 +1969,6 @@ export function ComplexDetailPageV3() {
                     monomerPlddt={complex.monomer_plddt_avg}
                     dimerPlddt={complex.dimer_plddt_avg}
                     disorderDelta={complex.disorder_delta}
-                    theme="light"
                   />
                 </React.Suspense>
               </div>
