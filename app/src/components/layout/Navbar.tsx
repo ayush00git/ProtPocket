@@ -1,11 +1,8 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useTheme } from '../../hooks/useTheme';
-import { ThemeToggle } from '../common/ThemeToggle';
 
 export function Navbar() {
   const location = useLocation();
-  const { theme, toggleTheme } = useTheme();
   const isSearch = location.pathname === '/search';
   const isDashboard = location.pathname === '/dashboard';
   const isMutation = location.pathname === '/mutation';
@@ -22,39 +19,33 @@ export function Navbar() {
           </span>
         </Link>
         <div className="flex flex-row items-center gap-6">
-          <Link 
-            to="/search" 
-            className={`text-sm h-[56px] flex items-center border-b-[2px] transition-colors duration-150 ${
-              isSearch 
-                ? 'text-white border-[#3B82F6] dark:border-accent dark:text-text-primary' 
+          <Link
+            to="/search"
+            className={`text-sm h-[56px] flex items-center border-b-[2px] transition-colors duration-150 ${isSearch
+                ? 'text-white border-[#3B82F6] dark:border-accent dark:text-text-primary'
                 : 'text-[#DBEAFE] dark:text-text-secondary border-transparent hover:text-white dark:hover:text-text-primary'
-            }`}
+              }`}
           >
             Search
           </Link>
           <Link
             to="/dashboard"
-            className={`text-sm h-[56px] flex items-center border-b-[2px] transition-colors duration-150 ${
-              isDashboard
+            className={`text-sm h-[56px] flex items-center border-b-[2px] transition-colors duration-150 ${isDashboard
                 ? 'text-white border-[#3B82F6] dark:border-accent dark:text-text-primary'
                 : 'text-[#DBEAFE] dark:text-text-secondary border-transparent hover:text-white dark:hover:text-text-primary'
-            }`}
+              }`}
           >
             Undrugged Targets
           </Link>
           <Link
             to="/mutation"
-            className={`text-sm h-[56px] flex items-center border-b-[2px] transition-colors duration-150 ${
-              isMutation
+            className={`text-sm h-[56px] flex items-center border-b-[2px] transition-colors duration-150 ${isMutation
                 ? 'text-white border-[#3B82F6] dark:border-accent dark:text-text-primary'
                 : 'text-[#DBEAFE] dark:text-text-secondary border-transparent hover:text-white dark:hover:text-text-primary'
-            }`}
+              }`}
           >
             Mutation
           </Link>
-          <div className="ml-4 flex items-center">
-            <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
-          </div>
         </div>
       </div>
     </nav>

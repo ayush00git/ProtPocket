@@ -1,6 +1,5 @@
 import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import { motion } from 'framer-motion';
-import { useTheme } from '../../../hooks/useTheme';
 import { useMolstar } from './useMolstar';
 import { ViewerHeader } from './ViewerHeader';
 import { ViewerFooter } from './ViewerFooter';
@@ -17,20 +16,15 @@ interface MolstarPanelProps {
   conformations?: Conformation[] | null;
   activeMode?: number | null;
   hideControls?: boolean;
-  /** Override the global theme (e.g. force 'light' in v3 pages) */
-  theme?: string;
 }
 
-export const MolstarPanel = React.memo(forwardRef<MolstarPanelHandle, MolstarPanelProps>(({ structureUrl, label, plddt, description, visible = true, highlightIndices = null, representation = 'cartoon', conformations = null, activeMode = null, hideControls = false, theme: themeProp }, ref) => {
+export const MolstarPanel = React.memo(forwardRef<MolstarPanelHandle, MolstarPanelProps>(({ structureUrl, label, plddt, description, visible = true, highlightIndices = null, representation = 'cartoon', conformations = null, activeMode = null, hideControls = false }, ref) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const { theme: hookTheme } = useTheme();
-  const theme = themeProp ?? hookTheme;
   const { containerRef, isLoading, error, highlightPocket, clearPocketHighlight } = useMolstar({
     structureUrl,
     label,
     autoLoad: visible && !!structureUrl,
     highlightIndices,
-    theme,
     representation,
     conformations,
     activeMode,
