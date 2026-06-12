@@ -63,46 +63,19 @@ export function MutationPage() {
           <p className="font-mono text-[11px] text-text-muted">Analysis takes approximately 15–30 seconds.</p>
         </div>
 
-        <div className="bg-bg-secondary border border-border rounded p-5">
-          <MutationForm
-            onSubmit={handleSubmit}
-            onInputChange={handleInputChange}
-            loading={isLoading}
-            initialUniprotId={initialUniprotId}
-          />
+        {/* Feature gated — AlphaMissense isn't enabled in this deployment yet. */}
+        <div className="flex flex-col items-center text-center gap-3 py-14 px-6 rounded-[14px]"
+          style={{ background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.22)' }}>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11.5px] font-medium tracking-wide bg-amber-50 text-amber-700 border border-amber-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+            In progress
+          </span>
+          <span className="text-[16px] font-medium text-text-primary">Mutation impact analysis is coming soon</span>
+          <span className="font-body text-[14px] text-text-secondary max-w-[460px] leading-relaxed">
+            This feature relies on the AlphaMissense dataset, which isn't enabled in this deployment yet.
+            Check back soon.
+          </span>
         </div>
-
-        {/* Phase 1: fetching structures */}
-        {structuresLoading && (
-          <LoadingState message="Fetching wildtype and mutant structures…" />
-        )}
-
-        {/* Structure error */}
-        {!structuresLoading && structuresError && (
-          <ErrorState message={structuresError} />
-        )}
-
-        {/* Phases 2 + 3: structures ready → show viewer, then analysis */}
-        {structures && !structuresError && (
-          <div className="flex flex-col gap-6">
-            <MutationViewer structures={structures} />
-
-            {/* Phase 2: running pocket analysis */}
-            {analysisLoading && (
-              <LoadingState message="Running pocket analysis and computing Druggability Shift Score…" />
-            )}
-
-            {/* Analysis error */}
-            {!analysisLoading && analysisError && (
-              <ErrorState message={analysisError} />
-            )}
-
-            {/* Phase 3: results */}
-            {!analysisLoading && !analysisError && result && (
-              <MutationResultCard result={result} />
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

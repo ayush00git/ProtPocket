@@ -2067,76 +2067,18 @@ export function ComplexDetailPageV3() {
                 />
               </div>
             )}
-            {/* ── Inline Mutation Analysis ── */}
+            {/* ── Inline Mutation Analysis (gated — AlphaMissense not enabled) ── */}
             {showMutation && complex && (
-              <div ref={mutationSectionRef} className="flex flex-col gap-6">
-                <InlineMutationForm
-                  uniprotId={complex.uniprot_id}
-                  mutation={mutationInput}
-                  onMutationChange={handleMutationInputChange}
-                  onSubmit={handleMutationSubmit}
-                  onReset={handleMutationReset}
-                  loading={isMutationLoading}
-                  hasRun={!!(mutStructures || structuresError)}
-                />
-
-                {/* Phase 1: fetching structures */}
-                {structuresLoading && (
-                  <div className="flex items-center gap-3 py-8 justify-center">
-                    <div
-                      className="w-4 h-4 rounded-full border-2 animate-spin"
-                      style={{ borderColor: 'rgba(11,15,20,0.12)', borderTopColor: '#0B0F14' }}
-                    />
-                    <span className="text-[14px]" style={{ color: '#7A8580' }}>
-                      Fetching wildtype and mutant structures…
-                    </span>
-                  </div>
-                )}
-
-                {/* Structure error */}
-                {!structuresLoading && structuresError && (
-                  <div
-                    className="px-5 py-4 rounded-[12px] text-[14px]"
-                    style={{ background: 'rgba(220,38,38,0.05)', border: '1px solid rgba(220,38,38,0.14)', color: '#DC2626' }}
-                  >
-                    {structuresError}
-                  </div>
-                )}
-
-                {/* Phases 2 + 3: structures loaded */}
-                {mutStructures && !structuresError && (
-                  <div className="flex flex-col gap-6">
-                    <MutationViewer structures={mutStructures} />
-
-                    {/* Phase 2: running pocket analysis */}
-                    {analysisLoading && (
-                      <div className="flex items-center gap-3 py-8 justify-center">
-                        <div
-                          className="w-4 h-4 rounded-full border-2 animate-spin"
-                          style={{ borderColor: 'rgba(11,15,20,0.12)', borderTopColor: '#0B0F14' }}
-                        />
-                        <span className="text-[14px]" style={{ color: '#7A8580' }}>
-                          Running pocket analysis and computing Druggability Shift Score…
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Analysis error */}
-                    {!analysisLoading && analysisError && (
-                      <div
-                        className="px-5 py-4 rounded-[12px] text-[14px]"
-                        style={{ background: 'rgba(220,38,38,0.05)', border: '1px solid rgba(220,38,38,0.14)', color: '#DC2626' }}
-                      >
-                        {analysisError}
-                      </div>
-                    )}
-
-                    {/* Phase 3: results */}
-                    {!analysisLoading && !analysisError && mutationResult && (
-                      <InlineMutationResultCard result={mutationResult} />
-                    )}
-                  </div>
-                )}
+              <div ref={mutationSectionRef} className="flex flex-col items-center text-center gap-3 py-12 px-6 rounded-[14px]"
+                style={{ background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.22)' }}>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11.5px] font-medium tracking-wide bg-amber-50 text-amber-700 border border-amber-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  In progress
+                </span>
+                <span className="text-[16px] font-medium text-[#0B0F14]">Mutation impact analysis is coming soon</span>
+                <span className="text-[14px] text-[#7A8580] max-w-[460px] leading-relaxed">
+                  This feature relies on the AlphaMissense dataset, which isn't enabled in this deployment yet.
+                </span>
               </div>
             )}
           </>
