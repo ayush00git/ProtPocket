@@ -18,12 +18,11 @@ const TAG_STYLES: Record<TagVariant, { bg: string; color: string; border: string
   unreviewed: { bg: 'rgba(251,191,36,0.10)',   color: '#92400E', border: 'rgba(251,191,36,0.28)'  },
 };
 
-// Soft card background keyed to the result's dominant property
-function cardColors(complex: Complex): { bg: string; border: string; stripGap: string } {
-  if (complex.is_who_pathogen)  return { bg: '#FFF5F5', border: 'rgba(239,68,68,0.13)',    stripGap: 'rgba(239,68,68,0.08)'    };
-  if (complex.drug_count === 0) return { bg: '#FFFCF0', border: 'rgba(245,158,11,0.15)',   stripGap: 'rgba(245,158,11,0.10)'   };
-  if (complex.drug_count > 0)   return { bg: '#F2FCF8', border: 'rgba(16,185,129,0.15)',   stripGap: 'rgba(16,185,129,0.10)'   };
-  return                               { bg: '#F8FAFC', border: 'rgba(11,15,20,0.07)',     stripGap: 'rgba(11,15,20,0.06)'     };
+function cardColors(complex: Complex): { bg: string; border: string; borderHover: string; stripGap: string; shadow: string } {
+  if (complex.is_who_pathogen)  return { bg: '#FFF5F5', border: 'rgba(239,68,68,0.20)',   borderHover: 'rgba(239,68,68,0.40)',   stripGap: 'rgba(239,68,68,0.10)',   shadow: '0 2px 8px rgba(239,68,68,0.06), 0 8px 24px rgba(239,68,68,0.04)'   };
+  if (complex.drug_count === 0) return { bg: '#FFFBEB', border: 'rgba(245,158,11,0.22)',  borderHover: 'rgba(245,158,11,0.45)',  stripGap: 'rgba(245,158,11,0.12)',  shadow: '0 2px 8px rgba(245,158,11,0.06), 0 8px 24px rgba(245,158,11,0.04)'  };
+  if (complex.drug_count > 0)   return { bg: '#F0FDF8', border: 'rgba(16,185,129,0.22)',  borderHover: 'rgba(16,185,129,0.45)',  stripGap: 'rgba(16,185,129,0.12)',  shadow: '0 2px 8px rgba(16,185,129,0.06), 0 8px 24px rgba(16,185,129,0.04)'  };
+  return                               { bg: '#F8FAFC', border: 'rgba(11,15,20,0.10)',    borderHover: 'rgba(11,15,20,0.22)',    stripGap: 'rgba(11,15,20,0.07)',    shadow: '0 2px 8px rgba(11,15,20,0.04), 0 8px 24px rgba(11,15,20,0.03)'    };
 }
 
 function Tag({ variant, children }: { variant: TagVariant; children: React.ReactNode }) {
@@ -38,6 +37,58 @@ function Tag({ variant, children }: { variant: TagVariant; children: React.React
   );
 }
 
+// ── Info tooltip ──────────────────────────────────────────────────────────────
+
+// A single hover-revealed explainer for the Gap Score, shown under the search bar.
+function GapScoreInfo() {
+  return (
+    <div className="group relative inline-flex items-center self-start" style={{ lineHeight: 0 }}>
+      <span className="inline-flex items-center gap-1.5 cursor-help">
+        <span
+          className="w-[15px] h-[15px] rounded-full flex items-center justify-center transition-colors duration-150 group-hover:bg-[rgba(11,15,20,0.12)]"
+          style={{ background: 'rgba(11,15,20,0.07)', color: 'rgba(11,15,20,0.45)' }}
+        >
+          <svg width="9" height="9" viewBox="0 0 9 9" fill="currentColor">
+            <text x="2.5" y="8" fontSize="8" fontFamily="serif" fontStyle="italic">i</text>
+          </svg>
+        </span>
+        <span className="font-jetbrains text-[11.5px] tracking-[0.02em] text-[#7A8580] group-hover:text-[#4A554D] transition-colors duration-150">
+          How is Gap Score computed?
+        </span>
+      </span>
+
+      {/* Hover panel — opens downward, sits below the search bar */}
+      <div
+        className="absolute top-full left-0 mt-2 z-50 w-[300px] rounded-[12px] p-4 flex flex-col gap-3 opacity-0 invisible translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200"
+        style={{
+          background: '#0B0F14',
+          color: 'rgba(255,255,255,0.88)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.28)',
+        }}
+      >
+        <p className="text-[12px] leading-relaxed m-0" style={{ color: 'rgba(255,255,255,0.65)' }}>
+          A composite priority score highlighting structurally confident, undrugged proteins — especially WHO pathogens.
+        </p>
+        <div
+          className="rounded-[8px] p-3 font-jetbrains text-[11px] leading-[1.7]"
+          style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.75)' }}
+        >
+          <div>GapScore =</div>
+          <div className="pl-2">(pLDDT / 100)</div>
+          <div className="pl-2">× undrugged_factor</div>
+          <div className="pl-2">× who_multiplier</div>
+          <div className="pl-2">+ disorder_bonus</div>
+        </div>
+        {/* Arrow pointing up to the trigger */}
+        <div
+          className="absolute bottom-full left-5 w-0 h-0"
+          style={{ borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '6px solid #0B0F14' }}
+        />
+      </div>
+    </div>
+  );
+}
+
 // ── Gap score bar ─────────────────────────────────────────────────────────────
 
 function GapScoreV3({ score = 0 }: { score?: number }) {
@@ -47,25 +98,25 @@ function GapScoreV3({ score = 0 }: { score?: number }) {
   const fillColor =
     pct >= 75 ? '#047857' :
     pct >= 40 ? '#B45309' :
-    '#D1D9D5';
+    '#94A3A0';
   const labelColor =
     pct >= 75 ? '#047857' :
     pct >= 40 ? '#B45309' :
-    '#B8C2BD';
+    '#94A3A0';
 
   return (
     <div className="flex items-center gap-3 w-full">
       <div
-        className="flex-1 h-[3px] rounded-full overflow-hidden"
-        style={{ background: 'rgba(11,15,20,0.07)' }}
+        className="flex-1 h-[4px] rounded-full overflow-hidden"
+        style={{ background: 'rgba(11,15,20,0.10)' }}
       >
         <div
-          className="h-full rounded-full transition-all duration-300 ease-out"
+          className="h-full rounded-full transition-all duration-500 ease-out"
           style={{ width: fillWidth, background: fillColor }}
         />
       </div>
       <span
-        className="font-jetbrains text-[12px] w-[46px] text-right shrink-0"
+        className="font-jetbrains text-[12px] font-medium w-[46px] text-right shrink-0"
         style={{ color: labelColor }}
       >
         {pct.toFixed(1)}%
@@ -118,11 +169,11 @@ function ResultCardV3({
   if (layout === 'list') {
     return (
       <div
-        onClick={() => navigate(`/v3/complex/${uniprot_id}`)}
-        className="flex items-center gap-5 px-5 py-[14px] cursor-pointer"
+        onClick={() => navigate(`/complex/${uniprot_id}`)}
+        className="flex items-center gap-5 px-5 py-[14px] cursor-pointer transition-colors duration-150 hover:brightness-[0.97]"
         style={{
           background: colors.bg,
-          borderBottom: isLast ? 'none' : '1px solid rgba(11,15,20,0.06)',
+          borderBottom: isLast ? 'none' : `1px solid ${colors.border}`,
         }}
       >
         {/* Protein name */}
@@ -151,9 +202,15 @@ function ResultCardV3({
   if (layout === 'grid') {
     return (
       <div
-        onClick={() => navigate(`/v3/complex/${uniprot_id}`)}
-        className="flex flex-col gap-4 p-5 rounded-[18px] cursor-pointer"
-        style={{ background: colors.bg, border: `1px solid ${colors.border}` }}
+        onClick={() => navigate(`/complex/${uniprot_id}`)}
+        className="flex flex-col gap-4 p-5 rounded-[18px] cursor-pointer transition-all duration-200 hover:-translate-y-[2px]"
+        style={{
+          background: colors.bg,
+          border: `1.5px solid ${colors.border}`,
+          boxShadow: colors.shadow,
+        }}
+        onMouseEnter={e => (e.currentTarget.style.border = `1.5px solid ${colors.borderHover}`)}
+        onMouseLeave={e => (e.currentTarget.style.border = `1.5px solid ${colors.border}`)}
       >
         <div className="flex flex-col gap-1">
           <h3 className="text-[15px] font-medium tracking-[-0.02em] text-[#0B0F14] leading-[1.35] m-0 line-clamp-2">
@@ -171,7 +228,7 @@ function ResultCardV3({
         <div className="flex flex-col gap-[8px] mt-auto">
           <span
             className="font-jetbrains text-[10px] uppercase tracking-[0.07em]"
-            style={{ color: 'rgba(11,15,20,0.32)' }}
+            style={{ color: 'rgba(11,15,20,0.38)' }}
           >
             Gap Score
           </span>
@@ -184,13 +241,19 @@ function ResultCardV3({
   // ── Card (full) layout ──
   return (
     <div
-      onClick={() => navigate(`/v3/complex/${uniprot_id}`)}
-      className="flex flex-col gap-5 p-7 rounded-[20px] cursor-pointer"
-      style={{ background: colors.bg, border: `1px solid ${colors.border}` }}
+      onClick={() => navigate(`/complex/${uniprot_id}`)}
+      className="flex flex-col gap-5 p-7 rounded-[20px] cursor-pointer transition-all duration-200 hover:-translate-y-[1px]"
+      style={{
+        background: colors.bg,
+        border: `1.5px solid ${colors.border}`,
+        boxShadow: colors.shadow,
+      }}
+      onMouseEnter={e => (e.currentTarget.style.border = `1.5px solid ${colors.borderHover}`)}
+      onMouseLeave={e => (e.currentTarget.style.border = `1.5px solid ${colors.border}`)}
     >
       {/* Top row */}
       <div className="flex items-start justify-between gap-4">
-        <h3 className="text-[18px] font-medium tracking-[-0.02em] text-[#0B0F14] leading-[1.3] m-0">
+        <h3 className="text-[18px] font-semibold tracking-[-0.02em] text-[#0B0F14] leading-[1.3] m-0">
           {protein_name}
         </h3>
         <div className="flex items-center gap-[6px] flex-wrap justify-end shrink-0">
@@ -202,7 +265,7 @@ function ResultCardV3({
 
       {/* Gene · organism */}
       <div className="flex items-center gap-2 text-[14px]">
-        <span className="font-jetbrains text-[#0B0F14] font-medium">{gene_name}</span>
+        <span className="font-jetbrains text-[#0B0F14] font-semibold">{gene_name}</span>
         <span style={{ color: 'rgba(11,15,20,0.18)' }}>·</span>
         <span className="italic text-[#4A554D]">{organism}</span>
       </div>
@@ -211,7 +274,7 @@ function ResultCardV3({
       <div className="flex flex-col gap-[10px]">
         <span
           className="font-jetbrains text-[11px] uppercase tracking-[0.07em]"
-          style={{ color: 'rgba(11,15,20,0.35)' }}
+          style={{ color: 'rgba(11,15,20,0.38)' }}
         >
           Gap Score
         </span>
@@ -220,7 +283,7 @@ function ResultCardV3({
 
       {/* Metrics strip */}
       <div
-        className="grid grid-cols-3 rounded-[10px] overflow-hidden"
+        className="grid grid-cols-3 rounded-[12px] overflow-hidden"
         style={{ border: `1px solid ${colors.border}`, gap: '1px', background: colors.stripGap }}
       >
         {[
@@ -228,14 +291,14 @@ function ResultCardV3({
           { label: 'Disorder Δ',  value: `${disorder_delta > 0 ? '+' : ''}${(disorder_delta || 0).toFixed(1)}` },
           { label: 'Structure',   value: disorder_delta > 0 ? 'Mono + Dimer' : 'Monomer only' },
         ].map(({ label, value }) => (
-          <div key={label} className="flex flex-col items-center justify-center py-3 px-3 bg-white text-center">
+          <div key={label} className="flex flex-col items-center justify-center py-[14px] px-3 bg-white text-center">
             <span
-              className="font-jetbrains text-[10px] uppercase tracking-[0.06em] mb-[5px]"
-              style={{ color: 'rgba(11,15,20,0.32)' }}
+              className="font-jetbrains text-[10px] uppercase tracking-[0.06em] mb-[6px]"
+              style={{ color: 'rgba(11,15,20,0.35)' }}
             >
               {label}
             </span>
-            <span className="font-jetbrains text-[12px] text-[#0B0F14]">{value}</span>
+            <span className="font-jetbrains text-[13px] font-medium text-[#0B0F14]">{value}</span>
           </div>
         ))}
       </div>
@@ -397,7 +460,10 @@ export function PlatformPage() {
         </div>
 
         {/* Search bar */}
-        <SearchBarV3 onSearch={handleSearch} loading={loading} initialValue={q} />
+        <div className="flex flex-col gap-3">
+          <SearchBarV3 onSearch={handleSearch} loading={loading} initialValue={q} />
+          <GapScoreInfo />
+        </div>
 
         {/* Loading */}
         {loading && (
@@ -406,7 +472,7 @@ export function PlatformPage() {
               className="w-4 h-4 rounded-full border-2 animate-spin shrink-0"
               style={{ borderColor: 'rgba(11,15,20,0.15)', borderTopColor: '#0B0F14' }}
             />
-            <span className="text-[14px] text-[#7A8580]">Querying AlphaFold + ChEMBL…</span>
+            <span className="text-[14px] text-[#7A8580]">Querying AlphaFold + UniProt…</span>
           </div>
         )}
 
@@ -460,7 +526,7 @@ export function PlatformPage() {
                 {view === 'list' && (
                   <div
                     className="rounded-[16px] overflow-hidden"
-                    style={{ border: '1px solid rgba(11,15,20,0.08)' }}
+                    style={{ border: '1.5px solid rgba(11,15,20,0.10)', boxShadow: '0 2px 12px rgba(11,15,20,0.04)' }}
                   >
                     {complexes.map((c, i) => (
                       <ResultCardV3
