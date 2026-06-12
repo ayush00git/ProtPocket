@@ -33,10 +33,13 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/v3/platform" element={<PlatformPage />} />
-        <Route path="/v3/complex/:id" element={<ComplexDetailPageV3 />} />
-        <Route path="/v3/*" element={<LandingV3 />} />
-<Route path="/*" element={<LegacyShell />} />
+        <Route path="/legacy/platform" element={<PlatformPage />} />
+        <Route path="/legacy/complex/:id" element={<ComplexDetailPageV3 />} />
+        <Route path="/legacy/v2/*" element={<LegacyShell />} />
+        <Route path="/platform" element={<PlatformPage />} />
+        <Route path="/mutation" element={<MutationPage />} />
+        <Route path="/complex/:id" element={<ComplexDetailPageV3 />} />
+        <Route path="/*" element={<LandingV3 />} />
       </Routes>
     </Router>
   );

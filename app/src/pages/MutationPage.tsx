@@ -7,6 +7,7 @@ import { MutationViewer } from '../components/mutation/MutationViewer';
 import { MutationResultCard } from '../components/mutation/MutationResultCard';
 import { LoadingState } from '../components/common/LoadingState';
 import { ErrorState } from '../components/common/ErrorState';
+import { NavV3 } from '../v3/components/NavV3';
 
 export function MutationPage() {
   const [searchParams] = useSearchParams();
@@ -46,8 +47,13 @@ export function MutationPage() {
 
   return (
     <div className="w-full flex flex-col items-center">
-      <div className="w-full max-w-[1100px] px-6 py-[48px] flex flex-col gap-8">
+      <NavV3 />
+      <div className="w-full max-w-[1100px] px-6 py-[48px] flex flex-col gap-8 mt-16">
         <div className="flex flex-col gap-3 max-w-[640px]">
+          <span className="self-start inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11.5px] font-medium tracking-wide bg-amber-50 text-amber-700 border border-amber-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+            Feature still in progress
+          </span>
           <h1 className="font-display font-bold text-[32px] text-text-primary">Mutation Impact Predictor</h1>
           <p className="font-body text-[15px] text-text-secondary leading-relaxed">
             Predict how a point mutation affects binding pocket druggability. Enter a UniProt ID and mutation
