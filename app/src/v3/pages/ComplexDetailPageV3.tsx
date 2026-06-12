@@ -1629,10 +1629,14 @@ export function ComplexDetailPageV3() {
   const navigate = useNavigate();
   const { complex, loading, error } = useComplex(id);
   const viewerRef = React.useRef<ProteinViewerHandle>(null);
+  const viewerSectionRef = useRef<HTMLDivElement>(null);
+  const dockingSectionRef = useRef<HTMLDivElement>(null);
 
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<LeaderboardEntry | null>(null);
   const [activeDocking, setActiveDocking] = useState<(DockingInfo & { activeTab?: string }) | null>(null);
+  const [showDockingPill, setShowDockingPill] = useState(false);
+  const dockingPillTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleHighlight = useCallback((indices: number[], target: string) => {
     viewerRef.current?.highlightPocket?.(indices, target);
@@ -1663,7 +1667,25 @@ export function ComplexDetailPageV3() {
     viewerRef.current?.clearConformations?.('both');
     setActiveDocking(info);
     setSelectedEntry(null);
+    // Bring the docking panel into view once it has rendered.
+    requestAnimationFrame(() => {
+      dockingSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   }, [activeDocking, complex]);
+
+  // When docking is launched, scroll up to the 3D viewer so the user watches
+  // the poses populate live, and surface a brief "running on server" pill.
+  const handleRunDocking = useCallback(() => {
+    viewerSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setShowDockingPill(true);
+    if (dockingPillTimer.current) clearTimeout(dockingPillTimer.current);
+    dockingPillTimer.current = setTimeout(() => setShowDockingPill(false), 5000);
+  }, []);
+
+  // Clean up the pill timer on unmount.
+  useEffect(() => () => {
+    if (dockingPillTimer.current) clearTimeout(dockingPillTimer.current);
+  }, []);
 
   const handleDockingComplete = useCallback((result: { pocketId: number; sourceType: string; fragmentId: string; fragmentName: string; smiles: string; bindingAffinity: number; conformations: Conformation[]; timestamp: number }) => {
     const entryId = `${result.sourceType}-${result.pocketId}-${result.fragmentId}-${Date.now()}`;
@@ -1793,6 +1815,28 @@ export function ComplexDetailPageV3() {
   return (
     <div className="bg-white min-h-screen font-geist antialiased" style={{ color: '#0B0F14' }}>
       <NavV3 />
+
+      {/* Floating "docking running" pill — shown briefly when Vina is launched */}
+      <div
+        className={`fixed left-1/2 -translate-x-1/2 z-[60] transition-all duration-300 ${
+          showDockingPill ? 'bottom-8 opacity-100 translate-y-0' : 'bottom-4 opacity-0 translate-y-2 pointer-events-none'
+        }`}
+        role="status"
+        aria-live="polite"
+      >
+        <div className="flex items-center gap-2.5 pl-3 pr-4 py-2.5 rounded-full"
+          style={{
+            background: '#0B0F14',
+            boxShadow: '0 8px 28px -8px rgba(11,15,20,0.45)',
+            border: '1px solid rgba(255,255,255,0.08)',
+          }}>
+          <span className="w-3.5 h-3.5 border-[1.5px] rounded-full animate-spin shrink-0"
+            style={{ borderColor: 'rgba(255,255,255,0.25)', borderTopColor: '#60a5fa' }} />
+          <span className="font-mono text-[12px] text-white">
+            Running on server, may take a while…
+          </span>
+        </div>
+      </div>
 
       <main className="max-w-[1200px] mx-auto px-8 pt-[140px] pb-[80px] flex flex-col gap-14">
 
@@ -1945,7 +1989,7 @@ export function ComplexDetailPageV3() {
 
             {/* ── Phase 2: 3D Viewer — lazy-loaded, Suspense skeleton while Mol* boots ── */}
             {loading || !complex ? <ViewerSkeleton /> : (
-              <div className="flex flex-col gap-3">
+              <div ref={viewerSectionRef} className="flex flex-col gap-3 scroll-mt-24">
                 <div style={{ borderBottom: '1px solid rgba(11,15,20,0.07)', paddingBottom: '16px', marginBottom: '4px' }}>
                   <h2 className="font-medium tracking-[-0.025em] text-[#0B0F14] m-0" style={{ fontSize: '22px' }}>
                     Structure Viewer
@@ -2007,18 +2051,21 @@ export function ComplexDetailPageV3() {
 
             {/* ── Vina Docking Section ── */}
             {!loading && complex && (
-              <DockingSectionV3
-                complexId={id}
-                activeDocking={activeDocking}
-                leaderboard={leaderboard}
-                selectedEntry={selectedEntry}
-                onDockingComplete={handleDockingComplete}
-                onConformationChange={handleConformationChange}
-                onUndock={handleUndock}
-                onCloseDocking={handleCloseDocking}
-                onSelectLeaderboardEntry={handleLeaderboardSelect}
-                onRemoveLeaderboardEntry={handleLeaderboardRemove}
-              />
+              <div ref={dockingSectionRef} className="scroll-mt-24">
+                <DockingSectionV3
+                  complexId={id}
+                  activeDocking={activeDocking}
+                  leaderboard={leaderboard}
+                  selectedEntry={selectedEntry}
+                  onDockingComplete={handleDockingComplete}
+                  onConformationChange={handleConformationChange}
+                  onUndock={handleUndock}
+                  onCloseDocking={handleCloseDocking}
+                  onSelectLeaderboardEntry={handleLeaderboardSelect}
+                  onRemoveLeaderboardEntry={handleLeaderboardRemove}
+                  onRunDocking={handleRunDocking}
+                />
+              </div>
             )}
             {/* ── Inline Mutation Analysis ── */}
             {showMutation && complex && (

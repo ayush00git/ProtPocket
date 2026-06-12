@@ -21,14 +21,16 @@ import (
 )
 
 const (
-	chemblMoleculeAPI = "https://www.ebi.ac.uk/chembl/api/data/molecule.json"
-	chemblFetchLimit  = 100
-	chemblMaxResults  = 20
-	chemblHTTPTimeout = 10 * time.Second
-	mwScalingFactor   = 3.0 // pocket volume (Å³) / factor → max MW (Da) cap
-	logpTolerance     = 1.0
-	polarTolerance    = 2.0 // fpocket polarity score maps loosely to H-bond counts
-	obabelCheckTime   = 5 * time.Second
+	chemblMoleculeAPI     = "https://www.ebi.ac.uk/chembl/api/data/molecule.json"
+	chemblFetchLimit      = 600              // candidate pool fetched across pages before filtering
+	chemblPageSize        = 200              // molecules per ChEMBL request (paginated by offset)
+	chemblMaxResults      = 100              // max fragments returned to the client
+	chemblValidateWorkers = 16               // concurrent OpenBabel SMILES checks
+	chemblHTTPTimeout     = 20 * time.Second // covers paginated fetch + concurrent validation
+	mwScalingFactor       = 3.0              // pocket volume (Å³) / factor → max MW (Da) cap
+	logpTolerance         = 1.0
+	polarTolerance        = 2.0 // fpocket polarity score maps loosely to H-bond counts
+	obabelCheckTime       = 5 * time.Second
 )
 
 var chemblHTTPClient = &http.Client{Timeout: chemblHTTPTimeout}
@@ -208,9 +210,6 @@ func filterAndRankChembl(raw []chemblMoleculeJSON, pocket models.Pocket) []model
 		if smiles == "" {
 			continue
 		}
-		if !smilesPassesOpenBabel(smiles) {
-			continue
-		}
 		f := chemblMoleculeToFragment(m)
 		if f.MolWeight > maxMW {
 			continue
@@ -257,7 +256,7 @@ func relaxFilterAndRank(raw []chemblMoleculeJSON, maxMW, targetLogP, targetPolar
 			continue
 		}
 		smiles := strings.TrimSpace(m.MoleculeStructures.CanonicalSmiles)
-		if smiles == "" || !smilesPassesOpenBabel(smiles) {
+		if smiles == "" {
 			continue
 		}
 		f := chemblMoleculeToFragment(m)
@@ -281,9 +280,10 @@ func relaxFilterAndRank(raw []chemblMoleculeJSON, maxMW, targetLogP, targetPolar
 	return out
 }
 
-func buildChemblSearchURL(maxMW float64) string {
+func buildChemblSearchURL(maxMW float64, limit, offset int) string {
 	v := url.Values{}
-	v.Set("limit", "100")
+	v.Set("limit", strconv.Itoa(limit))
+	v.Set("offset", strconv.Itoa(offset))
 	v.Set("molecule_properties__full_mwt__lte", formatChemblFloat(maxMW))
 	return chemblMoleculeAPI + "?" + v.Encode()
 }
@@ -317,22 +317,45 @@ func fetchChemblMoleculePage(ctx context.Context, u string) ([]chemblMoleculeJSO
 	return parsed.Molecules, nil
 }
 
-// queryChEMBL retrieves fragment-like ChEMBL molecules, scores them against pocket descriptors, and returns up to three hits.
+// queryChEMBL retrieves fragment-like ChEMBL molecules, scores them against
+// pocket descriptors, and returns up to chemblMaxResults hits. The candidate
+// pool is fetched across several pages concurrently, then SMILES validity is
+// checked in parallel before scoring.
 func queryChEMBL(pocket models.Pocket) []models.Fragment {
 	maxMW := maxMWFromPocket(pocket.Volume)
-	u := buildChemblSearchURL(maxMW)
 
 	ctx, cancel := context.WithTimeout(context.Background(), chemblHTTPTimeout)
 	defer cancel()
 
-	mols, err := fetchChemblMoleculePage(ctx, u)
-	if err != nil {
-		log.Printf("[chembl] fetch failed: %v", err)
-		return nil
+	// Fetch the candidate pool in pages, concurrently — offsets are known up
+	// front, so there's no need to walk page_meta.next sequentially.
+	pages := (chemblFetchLimit + chemblPageSize - 1) / chemblPageSize
+	pageResults := make([][]chemblMoleculeJSON, pages)
+	var fetchWg sync.WaitGroup
+	for p := range pages {
+		fetchWg.Add(1)
+		go func(p int) {
+			defer fetchWg.Done()
+			u := buildChemblSearchURL(maxMW, chemblPageSize, p*chemblPageSize)
+			mols, err := fetchChemblMoleculePage(ctx, u)
+			if err != nil {
+				log.Printf("[chembl] fetch page %d failed: %v", p, err)
+				return
+			}
+			pageResults[p] = mols
+		}(p)
+	}
+	fetchWg.Wait()
+
+	var mols []chemblMoleculeJSON
+	for _, page := range pageResults {
+		mols = append(mols, page...)
 	}
 	if len(mols) == 0 {
 		return nil
 	}
+
+	mols = prevalidateSMILES(ctx, mols)
 
 	out := filterAndRankChembl(mols, pocket)
 	if len(out) == 0 {
@@ -341,8 +364,49 @@ func queryChEMBL(pocket models.Pocket) []models.Fragment {
 	return out
 }
 
-// FetchFragments returns up to three ChEMBL fragments tailored to the pocket. Never returns an error;
-// failures yield an empty slice. Results are cached per pocket fingerprint.
+// prevalidateSMILES runs OpenBabel validity checks concurrently — the per-molecule
+// obabel subprocess is by far the slowest step, so fanning it out keeps a large
+// candidate pool fast. Returns only molecules with a non-empty, accepted SMILES,
+// preserving input order.
+func prevalidateSMILES(ctx context.Context, raw []chemblMoleculeJSON) []chemblMoleculeJSON {
+	valid := make([]bool, len(raw))
+	sem := make(chan struct{}, chemblValidateWorkers)
+	var wg sync.WaitGroup
+
+	for i, m := range raw {
+		if m.MoleculeProperties == nil || m.MoleculeStructures == nil {
+			continue
+		}
+		smiles := strings.TrimSpace(m.MoleculeStructures.CanonicalSmiles)
+		if smiles == "" {
+			continue
+		}
+		wg.Add(1)
+		go func(i int, s string) {
+			defer wg.Done()
+			select {
+			case sem <- struct{}{}:
+				defer func() { <-sem }()
+			case <-ctx.Done():
+				return
+			}
+			valid[i] = smilesPassesOpenBabel(s)
+		}(i, smiles)
+	}
+	wg.Wait()
+
+	out := make([]chemblMoleculeJSON, 0, len(raw))
+	for i, ok := range valid {
+		if ok {
+			out = append(out, raw[i])
+		}
+	}
+	return out
+}
+
+// FetchFragments returns up to chemblMaxResults ChEMBL fragments tailored to the
+// pocket. Never returns an error; failures yield an empty slice. Results are
+// cached per pocket fingerprint.
 func FetchFragments(pocket models.Pocket) []models.Fragment {
 	key := pocketCacheKey(pocket)
 

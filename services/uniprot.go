@@ -11,9 +11,20 @@ import (
 	"time"
 )
 
-var uniprotClient = &http.Client{Timeout: 10 * time.Second}
+// 30s timeout absorbs cold-start latency (DNS + TLS handshake) on the first
+// outbound request, which previously tripped the 10s limit and made the very
+// first search return no results until a warm retry.
+var uniprotClient = &http.Client{Timeout: 30 * time.Second}
 
 const uniprotBaseURL = "https://rest.uniprot.org/uniprotkb"
+
+// Retry settings for the UniProt search call. A cold first request can fail
+// transiently (cold TLS, brief network blip, a 5xx); without a retry that
+// surfaces to the user as an empty result set, fixable only by refreshing.
+const (
+	uniprotSearchAttempts = 3
+	uniprotRetryBackoff   = 300 * time.Millisecond
+)
 
 // UniProtEntry matches the fields we need from the UniProt REST API.
 // The same shape is returned both by the single-entry endpoint and by each
@@ -104,6 +115,25 @@ func SearchUniProtEntries(query string, limit int) ([]*UniProtEntry, error) {
 	searchURL := fmt.Sprintf("%s/search?query=%s&format=json&size=%d&fields=%s",
 		uniprotBaseURL, url.QueryEscape(combined), limit, searchFields)
 
+	// Retry transient failures so a single cold hiccup doesn't surface as "no
+	// results". Only the network/HTTP call is retried; a successful response
+	// (including a genuinely empty match set) returns immediately.
+	var lastErr error
+	for attempt := range uniprotSearchAttempts {
+		if attempt > 0 {
+			time.Sleep(uniprotRetryBackoff)
+		}
+		entries, err := fetchUniProtSearch(searchURL, query)
+		if err == nil {
+			return entries, nil
+		}
+		lastErr = err
+	}
+	return nil, lastErr
+}
+
+// fetchUniProtSearch performs a single UniProt search request and parses the result.
+func fetchUniProtSearch(searchURL, query string) ([]*UniProtEntry, error) {
 	resp, err := uniprotClient.Get(searchURL)
 	if err != nil {
 		return nil, fmt.Errorf("uniprot search failed for '%s': %w", query, err)

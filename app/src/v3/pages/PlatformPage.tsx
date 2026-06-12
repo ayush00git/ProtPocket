@@ -421,12 +421,21 @@ export function PlatformPage() {
   const { search, results, loading, error, source, query } = useSearch();
   const [view, setView] = React.useState<ViewMode>('card');
 
+  // Fire once on mount so a refresh or shared ?q=… link runs the search.
   React.useEffect(() => {
     if (q) search(q);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q]);
+  }, []);
 
-  const handleSearch = (newQ: string) => setSearchParams({ q: newQ });
+  // Run the search directly on user action (and keep the URL in sync). Relying
+  // on the URL effect alone meant re-running the same term — which doesn't change
+  // the URL — never re-fired the search, so it only worked after a refresh.
+  const handleSearch = (newQ: string) => {
+    const trimmed = newQ.trim();
+    if (!trimmed) return;
+    setSearchParams({ q: trimmed });
+    search(trimmed);
+  };
   const hasSearched = !!query;
   const hasResults  = results.length > 0;
   const complexes   = results as unknown as Complex[];

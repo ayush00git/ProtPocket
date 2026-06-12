@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"sync"
@@ -66,6 +67,9 @@ func SearchHandler(c *gin.Context) {
 	// One batched call hydrates all hits (name, gene, organism, taxon, disease)
 	// in a single request — no per-protein UniProt follow-ups.
 	entries, err := services.SearchUniProtEntries(query, searchResultLimit)
+	if err != nil {
+		log.Printf("[search] uniprot search failed for %q after retries: %v", query, err)
+	}
 	if err != nil || len(entries) == 0 {
 		sseDone(c.Writer, flusher, "fallback")
 		return
