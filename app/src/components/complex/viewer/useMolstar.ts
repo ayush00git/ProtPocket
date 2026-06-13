@@ -307,7 +307,6 @@ export function useMolstar({
             name: 'model',
             params: {},
           },
-          showUnitcell: false,
           representationPreset: 'auto',
         }
       );
