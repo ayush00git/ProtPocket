@@ -16,7 +16,7 @@ interface PocketTableRowProps {
 /**
  * PocketTableRow — displays details for a single predicted binding pocket in a table format.
  * "Dock Molecule" signals the parent to open the docking UI in the detail panel.
- */ 
+ */
 export function PocketTableRow({ pocket, activeTab, isActive, onHighlight, proteinPdbId, sourceType, onStartDocking, isDockingActive }: PocketTableRowProps) {
   const scoreColor = pocket.druggability_score >= 0.5
     ? 'text-success'
