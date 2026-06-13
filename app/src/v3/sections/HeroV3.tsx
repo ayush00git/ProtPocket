@@ -64,7 +64,9 @@ export function HeroV3() {
           </span>
         </a>
         <a
-          href="#platform"
+          href="https://github.com/ayush00git/ProtPocket/blob/main/README.md"
+          target="_blank"
+          rel="noopener noreferrer"
           className="relative group overflow-hidden inline-flex items-center gap-[10px] px-[22px] py-[14px] rounded-full font-medium no-underline bg-white/90 border border-[#0B0F14]/15 hover:border-[#0B0F14] transition-colors duration-300"
         >
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-[#0B0F14] rounded-full scale-0 group-hover:scale-100 transition-transform duration-500 ease-out z-0" />

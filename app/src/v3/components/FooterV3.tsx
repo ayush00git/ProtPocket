@@ -9,8 +9,7 @@ const PLATFORM_LINKS = [
 
 const RESOURCE_LINKS = [
   { label: 'GitHub repository', href: 'https://github.com/ayush00git/ProtPocket', external: true },
-  { label: 'Installation', href: '#install', external: false },
-  { label: 'Architecture', href: '#architecture', external: false },
+  { label: 'Installation', href: 'https://github.com/ayush00git/ProtPocket/blob/main/INSTALLATION.md', external: true },
   { label: 'Benchmark', href: '#mutation', external: false },
 ];
 
