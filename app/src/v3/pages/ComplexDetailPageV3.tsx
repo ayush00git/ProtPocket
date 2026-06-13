@@ -1673,14 +1673,35 @@ export function ComplexDetailPageV3() {
     });
   }, [activeDocking, complex]);
 
+  const hideDockingPill = useCallback(() => {
+    setShowDockingPill(false);
+    if (dockingPillTimer.current) {
+      clearTimeout(dockingPillTimer.current);
+      dockingPillTimer.current = null;
+    }
+  }, []);
+
   // When docking is launched, scroll up to the 3D viewer so the user watches
-  // the poses populate live, and surface a brief "running on server" pill.
+  // the poses populate live, and surface the "running on server" pill. The pill
+  // stays up until the job actually finishes (driven by handleDockingRunningChange);
+  // this timer is only a safety backstop so a wedged job can't pin it forever
+  // (Vina caps at ~10 min server-side).
   const handleRunDocking = useCallback(() => {
     viewerSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     setShowDockingPill(true);
     if (dockingPillTimer.current) clearTimeout(dockingPillTimer.current);
-    dockingPillTimer.current = setTimeout(() => setShowDockingPill(false), 5000);
+    dockingPillTimer.current = setTimeout(() => setShowDockingPill(false), 720000);
   }, []);
+
+  // Mirror the live docking run state onto the pill: visible while Vina runs,
+  // hidden the moment it completes or errors out.
+  const handleDockingRunningChange = useCallback((running: boolean) => {
+    if (running) {
+      setShowDockingPill(true);
+    } else {
+      hideDockingPill();
+    }
+  }, [hideDockingPill]);
 
   // Clean up the pill timer on unmount.
   useEffect(() => () => {
@@ -1704,7 +1725,8 @@ export function ComplexDetailPageV3() {
   const handleUndock = useCallback(() => {
     viewerRef.current?.clearConformations?.('both');
     viewerRef.current?.clearPocketHighlight?.();
-  }, []);
+    hideDockingPill();
+  }, [hideDockingPill]);
 
   const handleCloseDocking = useCallback(() => {
     handleUndock();
@@ -2064,6 +2086,7 @@ export function ComplexDetailPageV3() {
                   onSelectLeaderboardEntry={handleLeaderboardSelect}
                   onRemoveLeaderboardEntry={handleLeaderboardRemove}
                   onRunDocking={handleRunDocking}
+                  onRunningChange={handleDockingRunningChange}
                 />
               </div>
             )}

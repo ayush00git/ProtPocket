@@ -241,6 +241,7 @@ interface DockingPanelV3Props {
     timestamp: number;
   }) => void;
   onRunDocking?: () => void;
+  onRunningChange?: (running: boolean) => void;
   apiBase?: string;
 }
 
@@ -252,6 +253,7 @@ export function DockingPanelV3({
   onUndock,
   onDockingComplete,
   onRunDocking,
+  onRunningChange,
   apiBase = '/api',
 }: DockingPanelV3Props) {
   const {
@@ -276,6 +278,12 @@ export function DockingPanelV3({
     submitDocking,
     reset,
   } = useDockingJob(apiBase);
+
+  // Surface the live run state so the page-level "running on server" pill can
+  // stay up for exactly as long as Vina is working (until results or error).
+  useEffect(() => {
+    onRunningChange?.(step === 'running');
+  }, [step, onRunningChange]);
 
   useEffect(() => {
     if (step === 'results' && conformations?.length && selectedFragment) {
@@ -746,6 +754,7 @@ interface DockingSectionV3Props {
   onSelectLeaderboardEntry: (entry: LeaderboardEntry) => void;
   onRemoveLeaderboardEntry: (entryId: string) => void;
   onRunDocking?: () => void;
+  onRunningChange?: (running: boolean) => void;
 }
 
 export function DockingSectionV3({
@@ -760,6 +769,7 @@ export function DockingSectionV3({
   onSelectLeaderboardEntry,
   onRemoveLeaderboardEntry,
   onRunDocking,
+  onRunningChange,
 }: DockingSectionV3Props) {
   const renderRightPanel = () => {
     if (activeDocking) {
@@ -797,6 +807,7 @@ export function DockingSectionV3({
             onUndock={onUndock}
             onDockingComplete={onDockingComplete}
             onRunDocking={onRunDocking}
+            onRunningChange={onRunningChange}
           />
         </div>
       );
