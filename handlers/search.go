@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"sync"
@@ -14,6 +15,16 @@ import (
 	"github.com/ProtPocket/scoring"
 	"github.com/ProtPocket/services"
 )
+
+// searchResultLimit caps how many UniProt hits we hydrate per query. With the
+// batched search call the metadata cost is a single request regardless of this
+// number; the remaining per-protein AlphaFold lookups run concurrently and
+// stream in as they resolve, so a higher cap no longer means a slower response.
+const searchResultLimit = 100
+
+// alphafoldConcurrency bounds simultaneous AlphaFold structure lookups per
+// search so we stay a well-behaved client and don't trip its rate limiting.
+const alphafoldConcurrency = 12
 
 // SearchHandler streams search results via Server-Sent Events.
 // Hero matches are sent immediately; live UniProt results are streamed
@@ -53,8 +64,13 @@ func SearchHandler(c *gin.Context) {
 		sseResult(c.Writer, flusher, h)
 	}
 
-	uniprotIDs, err := services.SearchUniProt(query, 50)
-	if err != nil || len(uniprotIDs) == 0 {
+	// One batched call hydrates all hits (name, gene, organism, taxon, disease)
+	// in a single request — no per-protein UniProt follow-ups.
+	entries, err := services.SearchUniProtEntries(query, searchResultLimit)
+	if err != nil {
+		log.Printf("[search] uniprot search failed for %q after retries: %v", query, err)
+	}
+	if err != nil || len(entries) == 0 {
 		sseDone(c.Writer, flusher, "fallback")
 		return
 	}
@@ -65,21 +81,36 @@ func SearchHandler(c *gin.Context) {
 		seen[h.UniprotID] = true
 	}
 
-	resultCh := make(chan models.Complex, len(uniprotIDs))
+	resultCh := make(chan models.Complex, len(entries))
 	var wg sync.WaitGroup
 
-	for _, uid := range uniprotIDs {
-		if seen[uid] {
+	// Bound concurrent AlphaFold lookups. Without this, a 100-result query fires
+	// 100 simultaneous requests at the AlphaFold API and trips its rate limiting,
+	// which can fail an entire search. The semaphore keeps at most
+	// alphafoldConcurrency calls in flight; results still stream as they resolve.
+	sem := make(chan struct{}, alphafoldConcurrency)
+
+	for _, entry := range entries {
+		if entry.PrimaryAccession == "" || seen[entry.PrimaryAccession] {
 			continue
 		}
-		seen[uid] = true
+		seen[entry.PrimaryAccession] = true
 		wg.Add(1)
-		go func(id string) {
+		go func(e *services.UniProtEntry) {
 			defer wg.Done()
 			if ctx.Err() != nil {
 				return
 			}
-			complex, err := buildComplexForSearch(id)
+
+			// Acquire a slot, respecting client disconnects while we wait.
+			select {
+			case sem <- struct{}{}:
+				defer func() { <-sem }()
+			case <-ctx.Done():
+				return
+			}
+
+			complex, err := buildComplexForSearch(e)
 			if err != nil {
 				return
 			}
@@ -91,7 +122,7 @@ func SearchHandler(c *gin.Context) {
 				complex.DisorderDelta,
 			)
 			resultCh <- *complex
-		}(uid)
+		}(entry)
 	}
 
 	go func() {
@@ -128,14 +159,13 @@ func sseError(w http.ResponseWriter, f http.Flusher, msg string) {
 	f.Flush()
 }
 
-// buildComplexForSearch builds a Complex without fetching ChEMBL drug coverage.
-// DrugCount is set to -1 (unknown) so the gap score uses a neutral 0.5 factor.
-// Full drug data is fetched on demand by ComplexDetailHandler.
-func buildComplexForSearch(uniprotID string) (*models.Complex, error) {
-	uniEntry, err := services.FetchUniProtEntry(uniprotID)
-	if err != nil {
-		return nil, err
-	}
+// buildComplexForSearch builds a Complex from a pre-fetched UniProt entry,
+// without fetching ChEMBL drug coverage. The entry already carries all metadata
+// (from the batched search call), so the only network work here is the AlphaFold
+// structure lookup. DrugCount is set to -1 (unknown) so the gap score uses a
+// neutral 0.5 factor; full drug data is fetched on demand by ComplexDetailHandler.
+func buildComplexForSearch(uniEntry *services.UniProtEntry) (*models.Complex, error) {
+	uniprotID := uniEntry.PrimaryAccession
 
 	if !strings.Contains(uniEntry.EntryType, "Swiss-Prot") {
 		return nil, fmt.Errorf("skipping unreviewed entry %s", uniprotID)

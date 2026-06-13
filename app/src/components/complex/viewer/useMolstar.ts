@@ -11,6 +11,15 @@ import 'molstar/lib/mol-plugin-ui/skin/light.scss';
 
 import type { Conformation } from '../../../types';
 
+// Soft cool-gray canvas background. Pure white washes the cartoon out; this
+// gentle slate tint gives the structure presence while staying on-theme.
+const VIEWER_BG_COLOR = 0xeaeef4;
+
+// Green used to mark a highlighted pocket via the selection manager. The
+// selection highlight stands out without dimming the rest of the structure,
+// unlike Mol*'s focus representation.
+const POCKET_SELECT_COLOR = 0x16a34a;
+
 interface UseMolstarOptions {
   structureUrl?: string;
   label?: string;
@@ -86,11 +95,11 @@ export function useMolstar({
         // Set background matching site theme
         const bgColor = canvasBackground !== undefined
           ? Color(canvasBackground)
-          : Color(0xffffff);
+          : Color(VIEWER_BG_COLOR);
         spec.canvas3d = {
           renderer: {
             backgroundColor: bgColor,
-            selectColor: Color(0x2563eb),
+            selectColor: Color(POCKET_SELECT_COLOR),
             highlightColor: Color(0x2563eb),
           },
         };
@@ -182,17 +191,17 @@ export function useMolstar({
   useEffect(() => {
     if (!pluginRef.current || !pluginRef.current.isInitialized) return;
 
-    const bgColor = Color(0xffffff);
+    const bgColor = canvasBackground !== undefined ? Color(canvasBackground) : Color(VIEWER_BG_COLOR);
     const accentColor = Color(0x2563eb);
 
     pluginRef.current.canvas3d?.setProps({
       renderer: {
         backgroundColor: bgColor,
-        selectColor: accentColor,
+        selectColor: Color(POCKET_SELECT_COLOR),
         highlightColor: accentColor,
       }
     });
-  }, [theme]);
+  }, [theme, canvasBackground]);
 
   // Update representation when it changes
   useEffect(() => {
@@ -200,6 +209,19 @@ export function useMolstar({
     updateRepresentationStyle(pluginRef.current, representation);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [representation, isLoading]);
+
+  /**
+   * Collect the state-cell refs of the currently loaded docked-molecule poses,
+   * so receptor-wide restyling/recoloring can skip them.
+   */
+  const poseRefIds = (): Set<string> => {
+    const ids = new Set<string>();
+    for (const ref of poseStructureRefs.current.values()) {
+      const id = ref?.cell?.transform?.ref;
+      if (id) ids.add(id);
+    }
+    return ids;
+  };
 
   /**
    * Update the representation type for all structures.
@@ -210,8 +232,11 @@ export function useMolstar({
       if (!structures || structures.length === 0) return;
 
       const mgr = plugin.managers.structure.component;
+      const poseIds = poseRefIds();
 
       for (const s of structures) {
+        // Leave docked-molecule poses alone — they keep their blue spheres.
+        if (poseIds.has(s?.cell?.transform?.ref)) continue;
         if (!s.components) continue;
 
         for (const comp of s.components) {
@@ -225,8 +250,8 @@ export function useMolstar({
         }
       }
 
-      // Re-apply pLDDT coloring after swapping representation type
-      await applyPlddtColoring(plugin);
+      // Re-apply pLDDT coloring after swapping representation type (poses excluded)
+      await applyPlddtColoring(plugin, poseIds);
     } catch (err) {
       console.warn('[useMolstar] updateRepresentationStyle failed:', err);
     }
@@ -337,40 +362,34 @@ export function useMolstar({
           { state: { isGhost: false } }
         );
         const trajectory = await plugin.builders.structure.parseTrajectory(data, 'pdb');
-        await plugin.builders.structure.hierarchy.applyPreset(
-          trajectory,
-          'default',
-          {
-            structure: { name: 'model', params: {} },
-            showUnitcell: false,
-            representationPreset: 'auto',
-          }
-        );
+        const model = await plugin.builders.structure.createModel(trajectory);
+        const struct = await plugin.builders.structure.createStructure(model, { name: 'model', params: {} });
+
+        // Build the representation explicitly. The previous 'auto' preset could
+        // render the pose as cartoon and left its default coloring in place.
+        // The docked molecule itself is red; a translucent blue halo around it
+        // acts as a highlight, echoing the green pocket selection.
+        const comp = await plugin.builders.structure.tryCreateComponentStatic(struct, 'all');
+        if (comp) {
+          // Molecule body — red spheres.
+          await plugin.builders.structure.representation.addRepresentation(comp, {
+            type: 'spacefill',
+            color: 'uniform',
+            colorParams: { value: Color(0xdc2626) },
+          });
+          // Blue highlight halo — slightly larger, semi-transparent.
+          await plugin.builders.structure.representation.addRepresentation(comp, {
+            type: 'spacefill',
+            typeParams: { alpha: 0.3, sizeFactor: 1.35 },
+            color: 'uniform',
+            colorParams: { value: Color(0x2563eb) },
+          });
+        }
 
         plugin.managers.structure.hierarchy.sync(true);
         const structures = plugin.managers.structure.hierarchy.current.structures;
         const structRef = structures[structures.length - 1];
-        if (!structRef) continue;
-
-        const modeColors: Record<number, ReturnType<typeof Color>> = {
-          1: Color(0xf97316),
-          2: Color(0x8b5cf6),
-          3: Color(0x06b6d4),
-        };
-        const color = modeColors[conf.mode] ?? Color(0x6b7280);
-
-        const mgr = plugin.managers.structure.component;
-        if (structRef.components?.length) {
-          for (const comp of structRef.components) {
-            await mgr.removeRepresentations([comp]);
-            await mgr.addRepresentation([comp], 'ball-and-stick');
-            await mgr.updateRepresentationsTheme([comp], {
-              color: 'uniform',
-              colorParams: { value: color },
-            });
-          }
-        }
-        poseStructureRefs.current.set(conf.mode, structRef);
+        if (structRef) poseStructureRefs.current.set(conf.mode, structRef);
       } finally {
         URL.revokeObjectURL(url);
       }
@@ -456,10 +475,13 @@ export function useMolstar({
         }
       }
 
-      // Focus camera on the highlighted pocket if found
+      // Center the camera on the pocket, but clear any structure focus so Mol*'s
+      // focus representation doesn't ghost/dim the rest of the structure — the
+      // green selection highlight already marks the pocket at full opacity.
       if (targetLoci) {
         plugin.managers.camera.focusLoci(targetLoci);
       }
+      plugin.managers.structure.focus.clear();
     } catch (err) {
       console.warn('[useMolstar] highlightPocket failed:', err);
     }
@@ -532,7 +554,7 @@ export function useMolstar({
 /**
  * Apply pLDDT confidence coloring to all representations.
  */
-async function applyPlddtColoring(plugin: any) {
+async function applyPlddtColoring(plugin: any, excludeRefIds?: Set<string>) {
   const themeNames = ['uncertainty', 'plddt-confidence', 'b-factor'];
 
   const registry = plugin.representation.structure.themes.colorThemeRegistry;
@@ -556,6 +578,7 @@ async function applyPlddtColoring(plugin: any) {
 
   // Step 1: Apply the uncertainty theme via normal API
   for (const s of structures) {
+    if (excludeRefIds?.has(s?.cell?.transform?.ref)) continue;
     if (!s.components) continue;
     const validComponents = s.components.filter((c: any) => c && c.representations);
     if (validComponents.length > 0) {
@@ -576,6 +599,7 @@ async function applyPlddtColoring(plugin: any) {
     let patched = false;
 
     for (const s of structures) {
+      if (excludeRefIds?.has(s?.cell?.transform?.ref)) continue;
       if (!s.components) continue;
       for (const comp of s.components) {
         if (!comp.representations) continue;

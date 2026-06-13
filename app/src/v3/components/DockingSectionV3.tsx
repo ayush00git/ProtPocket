@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useDockingJob } from '../../hooks/useDockingJob';
 import { useChemblFragments } from '../../hooks/useChemblFragments';
 import type { Pocket, Conformation, LeaderboardEntry, Fragment, DockingInfo } from '../../types';
@@ -30,6 +30,36 @@ export function MoleculePickerV3({
   isDockingRunning,
   onRetry,
 }: MoleculePickerV3Props) {
+  // Lazy-render the (potentially 100+) compound cards in batches as the user
+  // scrolls, instead of mounting them all at once.
+  const LAZY_BATCH = 16;
+  const [visibleCount, setVisibleCount] = useState(LAZY_BATCH);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // Reset the window whenever the underlying fragment list changes.
+  useEffect(() => {
+    setVisibleCount(LAZY_BATCH);
+  }, [fragments]);
+
+  // Reveal the next batch when the sentinel scrolls into view.
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel || visibleCount >= fragments.length) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((c) => Math.min(c + LAZY_BATCH, fragments.length));
+        }
+      },
+      { root: scrollRef.current, rootMargin: '120px' }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [visibleCount, fragments.length]);
+
+  const visibleFragments = fragments.slice(0, visibleCount);
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between" style={{ borderBottom: '1px solid rgba(11,15,20,0.07)', paddingBottom: '10px' }}>
@@ -48,7 +78,7 @@ export function MoleculePickerV3({
         )}
       </div>
 
-      <div className="max-h-[300px] overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
+      <div ref={scrollRef} className="max-h-[300px] overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
         {isLoading && (
           <div className="flex flex-col items-center gap-2 py-10 justify-center">
             <div className="w-5 h-5 border-[2px] rounded-full animate-spin"
@@ -83,44 +113,51 @@ export function MoleculePickerV3({
 
         {!isLoading && !error && fragments.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-2">
-            {fragments.map((frag) => {
+            {visibleFragments.map((frag) => {
               const isSelected = selectedFragment?.chembl_id === frag.chembl_id;
               return (
                 <div
                   key={frag.chembl_id}
                   onClick={() => !isDockingRunning && onSelect(frag)}
-                  className="rounded-[12px] border p-3.5 transition-all duration-150 text-left"
+                  className={`rounded-[14px] border p-3.5 transition-all duration-200 text-left ${
+                    isDockingRunning
+                      ? 'cursor-not-allowed opacity-55'
+                      : isSelected
+                        ? 'cursor-pointer'
+                        : 'cursor-pointer hover:-translate-y-[2px] hover:border-[rgba(139,92,246,0.35)] hover:shadow-[0_6px_16px_-6px_rgba(11,15,20,0.12)]'
+                  }`}
                   style={
                     isDockingRunning
-                      ? { cursor: 'not-allowed', opacity: 0.55, borderColor: 'rgba(11,15,20,0.08)' }
+                      ? { borderColor: 'rgba(11,15,20,0.08)' }
                       : isSelected
-                        ? { borderColor: '#8b5cf6', background: 'rgba(139,92,246,0.03)', boxShadow: '0 0 0 1px rgba(139,92,246,0.25)', cursor: 'pointer' }
-                        : { borderColor: 'rgba(11,15,20,0.08)', background: '#white', cursor: 'pointer' }
+                        ? { borderColor: '#8b5cf6', background: 'rgba(139,92,246,0.04)', boxShadow: '0 0 0 1px rgba(139,92,246,0.30), 0 6px 16px -6px rgba(139,92,246,0.20)' }
+                        : { borderColor: 'rgba(11,15,20,0.09)', background: 'white' }
                   }
                 >
-                  <div className="flex items-center justify-between gap-1 mb-2">
+                  <div className="flex items-center justify-between gap-1 mb-2.5">
                     <span className="font-mono text-[12.5px] font-bold text-[#8b5cf6]">{frag.chembl_id}</span>
                     {frag.name && frag.name !== frag.chembl_id && (
-                      <span className="font-mono text-[10px] text-[#7A8580] truncate max-w-[120px]" title={frag.name}>{frag.name}</span>
+                      <span className="font-mono text-[9px] uppercase tracking-[0.04em] text-[#7A8580] truncate max-w-[120px] px-1.5 py-[2px] rounded"
+                        style={{ background: 'rgba(11,15,20,0.04)' }} title={frag.name}>{frag.name}</span>
                     )}
                   </div>
                   <code
                     title={frag.smiles}
-                    className="font-mono text-[9.5px] text-[#4A554D] px-2 py-1 rounded block mb-3 truncate"
-                    style={{ background: 'rgba(11,15,20,0.03)' }}
+                    className="font-mono text-[9.5px] text-[#4A554D] px-2 py-1.5 rounded-[6px] block mb-3 truncate"
+                    style={{ background: 'rgba(11,15,20,0.035)', border: '1px solid rgba(11,15,20,0.05)' }}
                   >
                     {frag.smiles}
                   </code>
-                  <div className="flex gap-4">
-                    <div>
-                      <span className="font-mono text-[9px] uppercase tracking-[0.06em] text-[#7A8580] block mb-[1px]">MW</span>
-                      <span className="font-mono text-[12px] font-semibold text-[#0B0F14]">
+                  <div className="flex items-stretch gap-3">
+                    <div className="flex-1 flex flex-col items-center py-1.5 rounded-[8px]" style={{ background: 'rgba(11,15,20,0.02)' }}>
+                      <span className="font-mono text-[9px] uppercase tracking-[0.06em] text-[#7A8580] mb-[2px]">MW</span>
+                      <span className="font-mono text-[12.5px] font-semibold text-[#0B0F14]">
                         {frag.mw != null ? frag.mw.toFixed(1) : '—'}
                       </span>
                     </div>
-                    <div>
-                      <span className="font-mono text-[9px] uppercase tracking-[0.06em] text-[#7A8580] block mb-[1px]">LogP</span>
-                      <span className="font-mono text-[12px] font-semibold text-[#0B0F14]">
+                    <div className="flex-1 flex flex-col items-center py-1.5 rounded-[8px]" style={{ background: 'rgba(11,15,20,0.02)' }}>
+                      <span className="font-mono text-[9px] uppercase tracking-[0.06em] text-[#7A8580] mb-[2px]">LogP</span>
+                      <span className="font-mono text-[12.5px] font-semibold text-[#0B0F14]">
                         {frag.logp != null ? frag.logp.toFixed(2) : '—'}
                       </span>
                     </div>
@@ -128,6 +165,25 @@ export function MoleculePickerV3({
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Lazy-load sentinel + progress indicator */}
+        {!isLoading && !error && fragments.length > 0 && (
+          <div ref={sentinelRef} className="flex items-center justify-center py-3">
+            {visibleCount < fragments.length ? (
+              <div className="flex items-center gap-2">
+                <div className="w-3.5 h-3.5 border-[1.5px] rounded-full animate-spin"
+                  style={{ borderColor: 'rgba(11,15,20,0.12)', borderTopColor: '#8b5cf6' }} />
+                <span className="font-mono text-[9.5px] uppercase tracking-[0.05em] text-[#B8C2BD]">
+                  Loading more · {visibleCount}/{fragments.length}
+                </span>
+              </div>
+            ) : (
+              <span className="font-mono text-[9.5px] uppercase tracking-[0.05em] text-[#B8C2BD]">
+                All {fragments.length} compounds loaded
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -146,13 +202,13 @@ export function MoleculePickerV3({
           style={
             !selectedFragment || isDockingRunning
               ? { background: 'rgba(11,15,20,0.03)', color: 'rgba(11,15,20,0.30)', border: '1px solid rgba(11,15,20,0.08)', cursor: 'not-allowed' }
-              : { background: '#0B0F14', color: '#white', border: '1px solid #0B0F14', cursor: 'pointer' }
+              : { background: '#0B0F14', color: 'white', border: '1px solid #0B0F14', cursor: 'pointer', boxShadow: '0 4px 12px -4px rgba(11,15,20,0.35)' }
           }
         >
           {isDockingRunning ? (
             <>
               <span className="w-3 h-3 border-[1.5px] rounded-full animate-spin"
-                style={{ borderColor: 'rgba(255,255,255,0.2)', borderTopColor: '#white' }} />
+                style={{ borderColor: 'rgba(255,255,255,0.2)', borderTopColor: 'white' }} />
               Running Vina…
             </>
           ) : (
@@ -184,6 +240,7 @@ interface DockingPanelV3Props {
     conformations: Conformation[];
     timestamp: number;
   }) => void;
+  onRunDocking?: () => void;
   apiBase?: string;
 }
 
@@ -194,6 +251,7 @@ export function DockingPanelV3({
   onConformationChange,
   onUndock,
   onDockingComplete,
+  onRunDocking,
   apiBase = '/api',
 }: DockingPanelV3Props) {
   const {
@@ -261,7 +319,7 @@ export function DockingPanelV3({
         error={fragmentsError}
         selectedFragment={selectedFragment}
         onSelect={selectFragment}
-        onConfirm={() => submitDocking(pocket.pocket_id, proteinPdbId, sourceType || 'dimer')}
+        onConfirm={() => { onRunDocking?.(); submitDocking(pocket.pocket_id, proteinPdbId, sourceType || 'dimer'); }}
         onRetry={refetchFragments}
         isDockingRunning={false}
       />
@@ -372,11 +430,14 @@ export function DockingLeaderboardV3({
   if (!entries || entries.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
-        <svg className="w-10 h-10" style={{ color: 'rgba(11,15,20,0.22)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2}
-            d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-        </svg>
-        <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[#7A8580]">
+        <div className="w-16 h-16 rounded-full flex items-center justify-center mb-1"
+          style={{ background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.12)' }}>
+          <svg className="w-7 h-7" style={{ color: 'rgba(139,92,246,0.55)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.3}
+              d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+          </svg>
+        </div>
+        <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[#4A554D] font-bold">
           Docking Leaderboard empty
         </span>
         <span className="font-mono text-[10px] text-[#B8C2BD] max-w-[220px] leading-relaxed">
@@ -598,11 +659,13 @@ export function DockingResultDetailV3({
                     setActiveMode(c.mode);
                     onConformationSelect?.(entry, c.mode);
                   }}
-                  className="flex items-center gap-3 px-3 py-2 rounded-[8px] cursor-pointer transition-all duration-150"
+                  className={`flex items-center gap-3 px-3 py-2 rounded-[8px] cursor-pointer transition-all duration-150 ${
+                    isActive ? '' : 'hover:bg-[rgba(11,15,20,0.04)]'
+                  }`}
                   style={
                     isActive
                       ? { background: 'rgba(139,92,246,0.08)', borderLeft: '3px solid #8b5cf6', paddingLeft: '9px' }
-                      : { background: 'rgba(11,15,20,0.02)', borderLeft: '3px solid transparent', hover: { background: 'rgba(11,15,20,0.04)' } }
+                      : { background: 'rgba(11,15,20,0.02)', borderLeft: '3px solid transparent' }
                   }
                 >
                   <span className="font-mono text-[10.5px] font-bold text-[#7A8580] px-1.5 py-[2px] rounded"
@@ -682,6 +745,7 @@ interface DockingSectionV3Props {
   onCloseDocking: () => void;
   onSelectLeaderboardEntry: (entry: LeaderboardEntry) => void;
   onRemoveLeaderboardEntry: (entryId: string) => void;
+  onRunDocking?: () => void;
 }
 
 export function DockingSectionV3({
@@ -695,6 +759,7 @@ export function DockingSectionV3({
   onCloseDocking,
   onSelectLeaderboardEntry,
   onRemoveLeaderboardEntry,
+  onRunDocking,
 }: DockingSectionV3Props) {
   const renderRightPanel = () => {
     if (activeDocking) {
@@ -731,6 +796,7 @@ export function DockingSectionV3({
             onConformationChange={onConformationChange}
             onUndock={onUndock}
             onDockingComplete={onDockingComplete}
+            onRunDocking={onRunDocking}
           />
         </div>
       );
@@ -758,9 +824,9 @@ export function DockingSectionV3({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         {/* Left Side: Leaderboard */}
         <div className="lg:col-span-5 bg-white border rounded-[16px] flex flex-col"
-          style={{ borderColor: 'rgba(11,15,20,0.07)' }}>
+          style={{ borderColor: 'rgba(11,15,20,0.09)', boxShadow: '0 1px 2px rgba(11,15,20,0.03), 0 16px 40px -24px rgba(11,15,20,0.14)' }}>
           <div className="px-5 py-4 border-b flex items-center justify-between"
-            style={{ borderColor: 'rgba(11,15,20,0.07)' }}>
+            style={{ borderColor: 'rgba(11,15,20,0.07)', background: 'linear-gradient(180deg, rgba(11,15,20,0.015), transparent)' }}>
             <div className="flex items-center gap-2">
               <svg className="w-4 h-4 text-[#8b5cf6]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -787,7 +853,7 @@ export function DockingSectionV3({
 
         {/* Right Side: Active calculations or entry inspection */}
         <div className="lg:col-span-7 bg-[#FAFBFA] border rounded-[16px] p-6 flex flex-col justify-between"
-          style={{ borderColor: 'rgba(11,15,20,0.07)' }}>
+          style={{ borderColor: 'rgba(11,15,20,0.09)', boxShadow: '0 1px 2px rgba(11,15,20,0.03), 0 16px 40px -24px rgba(11,15,20,0.14)' }}>
           {renderRightPanel()}
         </div>
       </div>

@@ -9,7 +9,9 @@ import (
 	"time"
 )
 
-var alphafoldClient = &http.Client{Timeout: 10 * time.Second}
+// 30s timeout absorbs cold-start latency (DNS + TLS handshake) on the first
+// outbound request so a cold first search doesn't fail before warming up.
+var alphafoldClient = &http.Client{Timeout: 30 * time.Second}
 
 const alphafoldBaseURL = "https://alphafold.ebi.ac.uk/api"
 
