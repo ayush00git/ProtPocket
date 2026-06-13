@@ -94,8 +94,8 @@ export const ProteinViewer = forwardRef<ProteinViewerHandle, ProteinViewerProps>
 
     const expandButton = useMemo(
       () => (
-        <div className="flex flex-row justify-end items-center gap-4">
-          <div className="flex bg-bg-tertiary rounded border border-border p-1">
+        <div className="flex flex-wrap justify-end items-center gap-3">
+          <div className="flex flex-wrap bg-bg-tertiary rounded border border-border p-1">
             {[
               { label: 'Cartoon', value: 'cartoon' },
               { label: 'Ball & Stick', value: 'ball-and-stick' },
@@ -190,16 +190,16 @@ export const ProteinViewer = forwardRef<ProteinViewerHandle, ProteinViewerProps>
           </div>
         </div>
 
-        <div className={`flex flex-row w-full border border-border rounded overflow-visible ${isZoomed ? 'invisible h-0 overflow-hidden' : ''}`}>
-          <div className="flex flex-1" style={{ minWidth: 0 }}>
+        <div className={`flex flex-col md:flex-row w-full border border-border rounded overflow-visible ${isZoomed ? 'invisible h-0 overflow-hidden' : ''}`}>
+          <div className="flex flex-1 min-w-0">
             {renderMonomer(false)}
           </div>
 
-          <div className="flex-none overflow-hidden" style={{ width: 48, height: '400px' }}>
+          <div className="hidden md:flex flex-none overflow-hidden" style={{ width: 48, height: '400px' }}>
             <DisorderDeltaBar disorderDelta={disorderDelta} visible />
           </div>
 
-          <div className="flex flex-1 overflow-hidden" style={{ minWidth: 0 }}>
+          <div className="flex flex-1 min-w-0 border-t md:border-t-0 md:border-l border-border">
             {renderComplex(false)}
           </div>
         </div>

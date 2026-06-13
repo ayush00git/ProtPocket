@@ -45,11 +45,11 @@ function FooterLinks({ links }: { links: { label: string; href: string; external
 export function FooterV3() {
   return (
     <footer className="w-full mt-[120px]" style={{ background: '#0B0F14' }}>
-      <div className="max-w-[1180px] mx-auto px-8 pt-16 pb-8">
+      <div className="max-w-[1180px] mx-auto px-4 sm:px-8 pt-12 sm:pt-16 pb-8">
 
-        <div className="grid gap-10" style={{ gridTemplateColumns: '1.4fr repeat(3, 1fr)' }}>
+        <div className="grid grid-cols-2 lg:grid-cols-[1.4fr_repeat(3,1fr)] gap-10">
           {/* Brand + blurb */}
-          <div>
+          <div className="col-span-2 lg:col-span-1">
             <a
               href="#top"
               className="inline-flex items-center text-[18px] font-semibold tracking-[-0.015em] no-underline"

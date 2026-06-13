@@ -16,7 +16,7 @@ export function CTAV3() {
   return (
     <section id="contact" style={{ paddingBottom: '48px', paddingTop: '120px' }}>
       <div
-        className="v3-reveal text-center rounded-[28px] px-12 py-[88px]"
+        className="v3-reveal text-center rounded-[28px] px-6 sm:px-12 py-[52px] sm:py-[88px]"
         style={{
           background: 'linear-gradient(180deg, #EBF9F3 0%, #E4F1F8 100%)',
           border: '1px solid rgba(11,15,20,0.08)',

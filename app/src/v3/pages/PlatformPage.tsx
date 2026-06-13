@@ -445,7 +445,7 @@ export function PlatformPage() {
       <NavV3 />
 
       <main
-        className="mx-auto px-8 pt-[148px] pb-[100px] flex flex-col gap-12 transition-all duration-300"
+        className="mx-auto px-4 sm:px-8 pt-[120px] sm:pt-[148px] pb-[100px] flex flex-col gap-12 transition-all duration-300"
         style={{ maxWidth: '1400px' }}
       >
         {/* Page header */}

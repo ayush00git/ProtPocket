@@ -1127,7 +1127,7 @@ function BindingSitesV3({
     <div className="flex flex-col gap-6">
       {/* Section label */}
       <div
-        className="flex items-center justify-between flex-wrap gap-4 pb-5"
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5"
         style={{ borderBottom: '1px solid rgba(11,15,20,0.07)' }}
       >
         <div>
@@ -1142,14 +1142,14 @@ function BindingSitesV3({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Tab switcher */}
           <div className="flex items-center gap-1 p-[3px] rounded-[10px]" style={{ background: 'rgba(11,15,20,0.05)' }}>
             {(['monomer', 'complex', 'comparison'] as SiteTab[]).map((t) => (
               <button
                 key={t}
                 onClick={() => handleTabSwitch(t)}
-                className="px-4 py-[7px] rounded-[8px] text-[11px] tracking-[0.04em] uppercase transition-colors duration-150"
+                className="px-3 sm:px-4 py-[7px] rounded-[8px] text-[11px] tracking-[0.04em] uppercase transition-colors duration-150"
                 style={
                   tab === t
                     ? { background: 'white', color: '#0B0F14', boxShadow: '0 1px 3px rgba(11,15,20,0.1)' }
@@ -1860,7 +1860,7 @@ export function ComplexDetailPageV3() {
         </div>
       </div>
 
-      <main className="max-w-[1200px] mx-auto px-8 pt-[140px] pb-[80px] flex flex-col gap-14">
+      <main className="max-w-[1200px] mx-auto px-4 sm:px-8 pt-[100px] sm:pt-[140px] pb-[80px] flex flex-col gap-14">
 
         {/* ── Back bar ── */}
         <div className="flex items-center justify-between">

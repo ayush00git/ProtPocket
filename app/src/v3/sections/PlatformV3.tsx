@@ -14,12 +14,11 @@ const RIGHT_NODES = [
   { id: 'br', label: 'ChEMBL',  desc: 'Known inhibitors and drug fragments for P9WFX1' },
 ];
 
-function GlassCard({ title, desc, align = 'left' }: { title: string; desc: string; align?: 'left' | 'right' }) {
+function GlassCard({ title, desc, align = 'left', className = '' }: { title: string; desc: string; align?: 'left' | 'right'; className?: string }) {
   return (
     <div
-      className={`flex flex-col p-6 backdrop-blur-xl ${align === 'right' ? 'items-end text-right' : 'items-start text-left'}`}
+      className={`flex flex-col p-5 md:p-6 backdrop-blur-xl ${align === 'right' ? 'items-end text-right' : 'items-start text-left'} ${className}`}
       style={{
-        width: '280px',
         background: 'rgba(255, 255, 255, 0.75)',
         border: '1px solid rgba(255, 255, 255, 0.9)',
         borderRadius: '24px',
@@ -92,10 +91,10 @@ function EGFRViewer() {
 export function PlatformV3() {
   return (
     <div className="w-full flex justify-center" style={{ background: 'linear-gradient(180deg, #EBF9F3 0%, #E4F1F8 100%)' }}>
-      <section id="platform" className="py-[140px] px-6 max-w-[1200px] w-full">
+      <section id="platform" className="py-[80px] md:py-[140px] px-4 sm:px-6 max-w-[1200px] w-full">
 
       {/* Header */}
-      <div className="max-w-[760px] mb-[72px] text-center mx-auto flex flex-col items-center">
+      <div className="max-w-[760px] mb-[48px] md:mb-[72px] text-center mx-auto flex flex-col items-center">
         
         <h2
           className="v3-reveal font-medium tracking-[-0.035em] leading-[1.05] text-[#0B0F14] m-0 mb-6"
@@ -110,10 +109,9 @@ export function PlatformV3() {
       </div>
 
       {/* Immersive HUD Layout */}
-      <div 
-        className="v3-reveal relative w-full rounded-[40px] overflow-hidden"
-        style={{ 
-          height: '720px', 
+      <div
+        className="v3-reveal relative w-full rounded-[28px] md:rounded-[40px] overflow-hidden h-[340px] md:h-[720px]"
+        style={{
           backgroundImage: 'linear-gradient(rgba(11,15,20,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(11,15,20,0.035) 1px, transparent 1px)',
           backgroundSize: '24px 24px',
           backgroundPosition: 'center center'
@@ -124,22 +122,30 @@ export function PlatformV3() {
           <EGFRViewer />
         </div>
 
-        {/* Overlay Cards Container (pointer events pass through the empty space to allow rotating the molecule) */}
-        <div className="absolute inset-0 pointer-events-none p-10 flex flex-col justify-between">
-          
+        {/* Overlay Cards — desktop only */}
+        <div className="absolute inset-0 pointer-events-none p-10 hidden md:flex flex-col justify-between">
+
           {/* Top Row */}
           <div className="flex justify-between items-start">
-            <GlassCard title={LEFT_NODES[0].label} desc={LEFT_NODES[0].desc} align="left" />
-            <GlassCard title={RIGHT_NODES[0].label} desc={RIGHT_NODES[0].desc} align="right" />
+            <GlassCard title={LEFT_NODES[0].label} desc={LEFT_NODES[0].desc} align="left" className="max-w-[280px]" />
+            <GlassCard title={RIGHT_NODES[0].label} desc={RIGHT_NODES[0].desc} align="right" className="max-w-[280px]" />
           </div>
 
           {/* Bottom Row */}
           <div className="flex justify-between items-end">
-            <GlassCard title={LEFT_NODES[1].label} desc={LEFT_NODES[1].desc} align="left" />
-            <GlassCard title={RIGHT_NODES[1].label} desc={RIGHT_NODES[1].desc} align="right" />
+            <GlassCard title={LEFT_NODES[1].label} desc={LEFT_NODES[1].desc} align="left" className="max-w-[280px]" />
+            <GlassCard title={RIGHT_NODES[1].label} desc={RIGHT_NODES[1].desc} align="right" className="max-w-[280px]" />
           </div>
-          
+
         </div>
+      </div>
+
+      {/* Mobile cards — shown below viewer on small screens */}
+      <div className="md:hidden grid grid-cols-2 gap-3 mt-4">
+        <GlassCard title={LEFT_NODES[0].label} desc={LEFT_NODES[0].desc} align="left" />
+        <GlassCard title={RIGHT_NODES[0].label} desc={RIGHT_NODES[0].desc} align="right" />
+        <GlassCard title={LEFT_NODES[1].label} desc={LEFT_NODES[1].desc} align="left" />
+        <GlassCard title={RIGHT_NODES[1].label} desc={RIGHT_NODES[1].desc} align="right" />
       </div>
 
       </section>
