@@ -23,7 +23,7 @@ const STEPS = [
 
 export function WorkflowV3() {
   return (
-    <section id="workflow" className="py-[120px]">
+    <section id="workflow" className="py-[80px] md:py-[120px]">
       <div className="max-w-[760px] mb-[72px]">
         <span
           className="v3-reveal inline-block text-[12.5px] text-[#7A8580] font-medium mb-7 pb-[10px]"
@@ -44,9 +44,8 @@ export function WorkflowV3() {
       </div>
 
       <div
-        className="v3-reveal grid gap-px rounded-3xl overflow-hidden"
+        className="v3-reveal grid grid-cols-1 md:grid-cols-3 gap-px rounded-3xl overflow-hidden"
         style={{
-          gridTemplateColumns: 'repeat(3, 1fr)',
           background: 'rgba(11,15,20,0.08)',
           border: '1px solid rgba(11,15,20,0.08)',
         }}

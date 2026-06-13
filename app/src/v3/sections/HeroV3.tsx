@@ -24,7 +24,7 @@ const STATEMENTS = [
 export function HeroV3() {
   return (
     <div className="w-full flex justify-center" style={{ background: 'linear-gradient(180deg, #EBF9F3 0%, #E4F1F8 100%)' }}>
-      <section className="pt-[120px] pb-[120px] max-w-[980px] w-full px-6">
+      <section className="pt-[88px] pb-[88px] md:pt-[120px] md:pb-[120px] max-w-[980px] w-full px-6">
       {/* Title */}
       <h1
         className="v3-reveal v3-in d1 font-medium tracking-[-0.04em] leading-[0.96] text-[#0B0F14] m-0 mb-9"
@@ -36,7 +36,7 @@ export function HeroV3() {
 
       {/* Statement blocks */}
       <div
-        className="v3-reveal v3-in d2 grid grid-cols-2 gap-px mb-[44px] max-w-[680px] rounded-2xl overflow-hidden"
+        className="v3-reveal v3-in d2 grid grid-cols-1 sm:grid-cols-2 gap-px mb-[44px] max-w-[680px] rounded-2xl overflow-hidden"
         style={{ background: 'rgba(11,15,20,0.08)', border: '1px solid rgba(11,15,20,0.08)' }}
       >
         {STATEMENTS.map(({ num, line }) => (
@@ -79,7 +79,7 @@ export function HeroV3() {
 
       {/* Built on strip */}
       <div
-        className="v3-reveal v3-in d4 mt-24 pt-9 flex items-baseline gap-14 flex-wrap"
+        className="v3-reveal v3-in d4 mt-16 md:mt-24 pt-9 flex items-baseline gap-6 md:gap-14 flex-wrap"
         style={{ borderTop: '1px solid rgba(11,15,20,0.08)' }}
       >
         <span className="text-[13px] text-[#7A8580] font-medium shrink-0">Built on</span>
