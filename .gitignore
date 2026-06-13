@@ -2,7 +2,6 @@
 node_modules/
 /tmp/
 dist/
-app/dist/
 
 # AlphaMissense dataset - too large for git (3.5GB uncompressed)
 data/AlphaMissense_aa_substitutions.tsv
