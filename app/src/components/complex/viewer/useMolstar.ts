@@ -102,6 +102,16 @@ export function useMolstar({
             selectColor: Color(POCKET_SELECT_COLOR),
             highlightColor: Color(0x2563eb),
           },
+          // The docked-molecule halo is rendered with `emissive`; emissive-mode
+          // bloom turns it into a soft glowing yellow outline around the pose,
+          // echoing the green pocket selection marking. Only emissive geometry
+          // blooms, so the receptor and the pocket highlight are unaffected.
+          postprocessing: {
+            bloom: {
+              name: 'on',
+              params: { strength: 1.6, radius: 0.45, threshold: 0, mode: 'emissive' },
+            },
+          },
         };
 
         // Disable unnecessary features for minimal viewer
@@ -235,7 +245,7 @@ export function useMolstar({
       const poseIds = poseRefIds();
 
       for (const s of structures) {
-        // Leave docked-molecule poses alone — they keep their blue spheres.
+        // Leave docked-molecule poses alone — they keep their red spheres + yellow halo.
         if (poseIds.has(s?.cell?.transform?.ref)) continue;
         if (!s.components) continue;
 
@@ -366,7 +376,7 @@ export function useMolstar({
 
         // Build the representation explicitly. The previous 'auto' preset could
         // render the pose as cartoon and left its default coloring in place.
-        // The docked molecule itself is red; a translucent blue halo around it
+        // The docked molecule itself is red; a translucent yellow halo around it
         // acts as a highlight, echoing the green pocket selection.
         const comp = await plugin.builders.structure.tryCreateComponentStatic(struct, 'all');
         if (comp) {
@@ -376,12 +386,15 @@ export function useMolstar({
             color: 'uniform',
             colorParams: { value: Color(0xdc2626) },
           });
-          // Blue highlight halo — slightly larger, semi-transparent.
+          // Yellow glow outline — a snug, emissive shell. Emissive-mode bloom
+          // (configured in the canvas3d postprocessing above) renders it as a
+          // soft glowing contour hugging the molecule, mirroring the crisp green
+          // outline the pocket selection presents.
           await plugin.builders.structure.representation.addRepresentation(comp, {
             type: 'spacefill',
-            typeParams: { alpha: 0.3, sizeFactor: 1.35 },
+            typeParams: { alpha: 0.5, sizeFactor: 1.18, emissive: 1 },
             color: 'uniform',
-            colorParams: { value: Color(0x2563eb) },
+            colorParams: { value: Color(0xfacc15) },
           });
         }
 

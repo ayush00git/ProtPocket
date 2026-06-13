@@ -185,8 +185,8 @@ export const ProteinViewer = forwardRef<ProteinViewerHandle, ProteinViewerProps>
             <span className="font-mono text-[10px] text-text-primary">Green — highlighted pocket</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#2563eb', boxShadow: '0 0 0 1px rgba(0,0,0,0.1) inset' }} />
-            <span className="font-mono text-[10px] text-text-primary">Blue — docked molecule</span>
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#facc15', boxShadow: '0 0 0 1px rgba(0,0,0,0.1) inset' }} />
+            <span className="font-mono text-[10px] text-text-primary">Yellow — docked molecule</span>
           </div>
         </div>
 
