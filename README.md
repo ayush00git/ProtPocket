@@ -2,7 +2,7 @@
 
 **From protein name to ranked drug binding sites — in seconds.**
 
-ProtPocket is an open-source tool for finding druggable pockets in proteins using AlphaFold structure predictions. Search any protein by name, gene symbol, or accession number, and ProtPocket will automatically compare the single-chain and two-chain (homodimer) structures, detect surface pockets, score them by drug discovery priority, and let you dock molecules directly in the browser.
+ProtPocket is an open-source tool for finding druggable pockets in proteins using [AlphaFold](https://alphafold.ebi.ac.uk/) structure predictions. Search any protein by name, gene symbol, or accession number, and ProtPocket will automatically compare the single-chain and two-chain (homodimer) structures, detect surface pockets, score them by drug discovery priority, and let you dock molecules directly in the browser.
 
 **Live:** https://protpocket.ayushz.me
 
@@ -28,7 +28,7 @@ Most proteins only become biologically active when two identical copies fold tog
 
 ProtPocket makes these pockets visible. For every protein you search, it:
 
-- Fetches both the single-chain and two-chain AlphaFold predictions
+- Fetches both the single-chain and two-chain [AlphaFold](https://alphafold.ebi.ac.uk/) predictions
 - Runs pocket detection on each structure and highlights pockets that only appear in the homodimer
 - Scores every protein by how urgently it needs a drug (see [Gap Score](#the-gap-score))
 - Lets you dock small molecules into any pocket and view the result in an interactive 3D viewer
@@ -45,7 +45,7 @@ PEA15 is a small human protein that blocks cell death and is overexpressed in se
 
 Go to [protpocket.ayushz.me](https://protpocket.ayushz.me) and type `PEA15` into the search bar.
 
-ProtPocket recognises this as a gene name and queries UniProt, AlphaFold, and ChEMBL at the same time. Within a few seconds you see a list of matching proteins with their scores.
+ProtPocket recognises this as a gene name and queries [UniProt](https://www.uniprot.org/), [AlphaFold](https://alphafold.ebi.ac.uk/), and [ChEMBL](https://www.ebi.ac.uk/chembl/) at the same time. Within a few seconds you see a list of matching proteins with their scores.
 
 ![Searching for PEA15 on the platform](./public/img/pea15-search.png)
 
@@ -55,7 +55,7 @@ Each card shows three numbers at a glance:
 
 | Field | What it means |
 |-------|---------------|
-| **Confidence** | AlphaFold's confidence in the predicted structure, averaged across the homodimer. Scores above 70 are considered reliable. |
+| **Confidence** | [AlphaFold](https://alphafold.ebi.ac.uk/)'s confidence in the predicted structure, averaged across the homodimer. Scores above 70 are considered reliable. |
 | **Disorder Δ** | How much more ordered the protein becomes when it dimerizes. A positive number means the functional shape only appears in the two-chain form. PEA15 shows +6.3 here. |
 | **Gap Score** | ProtPocket's priority score. Higher means more urgently undrugged. PEA15 scores high because it is well-predicted as a dimer, has zero approved drugs, and its structure is revealed by dimerization. |
 
@@ -77,7 +77,7 @@ A molecule that binds an interface pocket physically prevents the two chains fro
 
 **What the disorder delta is telling you:** PEA15's single chain has low structural confidence. The homodimer is much more ordered (+6.3). The residues that become ordered are the ones forming the dimer interface — precisely the ones lining the top-ranked pockets.
 
-The full expanded view shows both structures side by side with pockets highlighted in green. Blue regions mean AlphaFold is confident about those positions; orange/red regions are less certain.
+The full expanded view shows both structures side by side with pockets highlighted in green. Blue regions mean [AlphaFold](https://alphafold.ebi.ac.uk/) is confident about those positions; orange/red regions are less certain.
 
 ![Side-by-side structure comparison with highlighted pockets](./public/img/pea15-pocket-analysis.png)
 
@@ -85,13 +85,13 @@ The full expanded view shows both structures side by side with pockets highlight
 
 Once pocket analysis is done you can test whether a small molecule fits inside any pocket.
 
-**Select a pocket and molecule.** Choose the top-ranked interface pocket. You will see a list of fragment molecules whose shapes are a geometric match for this cavity, drawn from ChEMBL — a public database of molecules with known biological activity. Select one and click **Run Docking**.
+**Select a pocket and molecule.** Choose the top-ranked interface pocket. You will see a list of fragment molecules whose shapes are a geometric match for this cavity, drawn from [ChEMBL](https://www.ebi.ac.uk/chembl/) — a public database of molecules with known biological activity. Select one and click **Run Docking**.
 
 ![Docking panel showing fragment selection and leaderboard](./public/img/pea15-dock-lead.png)
 
-Behind the scenes ProtPocket converts the fragment into a 3D shape, prepares the PEA15 homodimer as the docking target, and runs AutoDock Vina to test how and where the fragment fits inside the pocket. Results stream back to the browser automatically.
+Behind the scenes ProtPocket converts the fragment into a 3D shape, prepares the PEA15 homodimer as the docking target, and runs [AutoDock Vina](https://vina.scripps.edu/) to test how and where the fragment fits inside the pocket. Results stream back to the browser automatically.
 
-**View the result.** The Mol* 3D viewer loads the top-ranked pose sitting inside the PEA15 structure. You can rotate, zoom, and switch between alternative conformations using the leaderboard. A molecule sitting inside a blue (high-confidence) region is a trustworthy result.
+**View the result.** The [Mol*](https://molstar.org/) 3D viewer loads the top-ranked pose sitting inside the PEA15 structure. You can rotate, zoom, and switch between alternative conformations using the leaderboard. A molecule sitting inside a blue (high-confidence) region is a trustworthy result.
 
 ![Docked molecule visualized inside the PEA15 pocket in Mol*](./public/img/pea15-dock.png)
 
@@ -120,15 +120,15 @@ Results on the homepage are sorted by Gap Score descending — the most urgently
 
 | Source | Role |
 |--------|------|
-| **AlphaFold Database** (EMBL-EBI / Google DeepMind) | Single-chain and homodimer structure predictions |
-| **UniProt** | Gene names, organism, disease associations |
-| **ChEMBL** (EMBL-EBI) | Approved drug counts and fragment suggestions |
-| **fpocket** | Pocket detection, runs locally on the server |
-| **AutoDock Vina** | Docking engine, runs locally on the server |
-| **Open Babel** | Molecular format conversions |
-| **WHO Priority Pathogen List** (2024) | Powers the 2× Gap Score multiplier for critical pathogens |
+| **[AlphaFold Database](https://alphafold.ebi.ac.uk/)** ([EMBL-EBI](https://www.ebi.ac.uk/) / [Google DeepMind](https://deepmind.google/)) | Single-chain and homodimer structure predictions |
+| **[UniProt](https://www.uniprot.org/)** | Gene names, organism, disease associations |
+| **[ChEMBL](https://www.ebi.ac.uk/chembl/)** ([EMBL-EBI](https://www.ebi.ac.uk/)) | Approved drug counts and fragment suggestions |
+| **[fpocket](https://github.com/Discngine/fpocket)** | Pocket detection, runs locally on the server |
+| **[AutoDock Vina](https://vina.scripps.edu/)** | Docking engine, runs locally on the server |
+| **[Open Babel](https://openbabel.org/)** | Molecular format conversions |
+| **[WHO Priority Pathogen List (2024)](https://www.who.int/publications/i/item/9789240093461)** | Powers the 2× Gap Score multiplier for critical pathogens |
 
-ProtPocket does not store or redistribute AlphaFold structure files. All structure data is linked directly to EMBL-EBI's servers.
+ProtPocket does not store or redistribute [AlphaFold](https://alphafold.ebi.ac.uk/) structure files. All structure data is linked directly to [EMBL-EBI](https://www.ebi.ac.uk/)'s servers.
 
 ---
 
