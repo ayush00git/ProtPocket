@@ -16,6 +16,7 @@ ProtPocket is an open-source tool for finding druggable pockets in proteins usin
    - [Result card](#result-card)
    - [Pocket analysis](#pocket-analysis)
    - [Molecular docking](#molecular-docking)
+   - [Mutation impact](#mutation-impact)
 3. [The Gap Score](#the-gap-score)
 4. [Data Sources](#data-sources)
 5. [Installation](#installation)
@@ -32,6 +33,7 @@ ProtPocket makes these pockets visible. For every protein you search, it:
 - Runs pocket detection on each structure and highlights pockets that only appear in the homodimer
 - Scores every protein by how urgently it needs a drug (see [Gap Score](#the-gap-score))
 - Lets you dock small molecules into any pocket and view the result in an interactive 3D viewer
+- Analyzes the impact of point mutations on pocket geometry using [AlphaMissense](https://alphamissense.hegelab.org/) pathogenicity data
 
 The homodimer structures come from the [March 2026 AlphaFold complex release](https://www.embl.org/news/science-technology/first-complexes-alphafold-database/) — the largest protein complex dataset ever assembled.
 
@@ -97,6 +99,20 @@ Behind the scenes ProtPocket converts the fragment into a 3D shape, prepares the
 
 **Reading the scores.** Each conformation is ranked by predicted binding affinity in kcal/mol. More negative = stronger predicted binding. Scores below −7 kcal/mol are considered good starting points for experimental follow-up. These are computational estimates — they guide which fragments are worth testing in the lab, not a guarantee of real-world binding.
 
+### Mutation impact
+
+> **Coming soon** — implemented but not yet on the live site.
+
+Enter a mutation (e.g. `EGFR T790M`) and a UniProt accession to see how it affects pocket druggability. ProtPocket looks up the variant's pathogenicity in [AlphaMissense](https://alphamissense.hegelab.org/), compares wildtype and mutant pocket geometry via [fpocket](https://github.com/Discngine/fpocket), and produces a **Druggability Shift Score** (DSS) from −1 to +1:
+
+| DSS range | Classification |
+|-----------|----------------|
+| ≥ +0.15 | Pocket improved / created |
+| −0.15 to +0.15 | Pocket unchanged |
+| ≤ −0.15 | Pocket degraded / collapsed |
+
+Mutant structures are sourced from [RCSB PDB](https://www.rcsb.org/) when available; otherwise the wildtype backbone is used as an approximation and the score relies more on AlphaMissense pathogenicity.
+
 ---
 
 ## The Gap Score
@@ -123,6 +139,8 @@ Results on the homepage are sorted by Gap Score descending — the most urgently
 | **[AlphaFold Database](https://alphafold.ebi.ac.uk/)** ([EMBL-EBI](https://www.ebi.ac.uk/) / [Google DeepMind](https://deepmind.google/)) | Single-chain and homodimer structure predictions |
 | **[UniProt](https://www.uniprot.org/)** | Gene names, organism, disease associations |
 | **[ChEMBL](https://www.ebi.ac.uk/chembl/)** ([EMBL-EBI](https://www.ebi.ac.uk/)) | Approved drug counts and fragment suggestions |
+| **[AlphaMissense](https://alphamissense.hegelab.org/)** ([Google DeepMind](https://deepmind.google/)) | Pathogenicity scores for 216M single amino-acid variants |
+| **[RCSB PDB](https://www.rcsb.org/)** | Experimental mutant structures for mutation analysis |
 | **[fpocket](https://github.com/Discngine/fpocket)** | Pocket detection, runs locally on the server |
 | **[AutoDock Vina](https://vina.scripps.edu/)** | Docking engine, runs locally on the server |
 | **[Open Babel](https://openbabel.org/)** | Molecular format conversions |
