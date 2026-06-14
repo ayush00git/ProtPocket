@@ -1,47 +1,55 @@
 # ProtPocket
 
-**From protein name to ranked drug binding sites — in seconds.**
+**From protein search to ranked target insights — in seconds.**
 
-ProtPocket is an open-source tool for finding druggable pockets in proteins using [AlphaFold](https://alphafold.ebi.ac.uk/) structure predictions. Search any protein by name, gene symbol, or accession number, and ProtPocket will automatically compare the single-chain and two-chain (homodimer) structures, detect surface pockets, score them by drug discovery priority, and let you dock molecules directly in the browser.
+ProtPocket is an open-source research prototype for exploring protein targets in one browser workflow. Search any protein by name, gene symbol, or accession number, and ProtPocket brings together [AlphaFold](https://alphafold.ebi.ac.uk/) structure predictions, monomer-vs-homodimer comparison, pocket detection, mutation impact scoring, molecule suggestions, exploratory docking, and interactive 3D visualization.
 
-**Live:** https://protpocket.ayushz.me
+The goal is to help researchers move quickly from a protein query to testable structural hypotheses: Which pockets exist? Do new pockets appear in the homodimer? Are they near important mutations? Are there candidate molecules that could fit? How confident is the predicted structure?
+
+**Live:** [https://protpocket.ayushz.me](https://protpocket.ayushz.me)
 
 ---
 
 ## Table of Contents
 
-1. [What is ProtPocket](#what-is-protpocket)
+1. [Why ProtPocket](#why-protpocket)
 2. [Example: PEA15](#example-pea15)
-   - [Search](#search)
-   - [Result card](#result-card)
-   - [Pocket analysis](#pocket-analysis)
-   - [Molecular docking](#molecular-docking)
-   - [Mutation impact](#mutation-impact)
+
+   * [Search](#search)
+   * [Result card](#result-card)
+   * [Pocket analysis](#pocket-analysis)
+   * [Molecular docking](#molecular-docking)
+   * [Mutation impact](#mutation-impact)
 3. [The Gap Score](#the-gap-score)
 4. [Data Sources](#data-sources)
 5. [Installation](#installation)
 
 ---
 
-## What is ProtPocket
+## Why ProtPocket?
 
-Most proteins only become biologically active when two identical copies fold together — a structure called a **homodimer**. The point where those two copies meet creates surface pockets that do not exist in either copy on its own. These interface pockets are among the most valuable targets in drug discovery, but they are invisible to any tool that looks at only a single protein chain.
+Many proteins function as complexes, and in some cases two identical chains form a homodimer with pockets that are not visible in the single-chain structure. These interface pockets can be valuable starting points for drug-discovery research, but they are easy to miss when tools analyze only the monomer.
 
-ProtPocket makes these pockets visible. For every protein you search, it:
+ProtPocket compares AlphaFold monomer and homodimer predictions side by side, detects pockets in both structures, highlights candidate interface pockets, and connects them with mutation and docking context.
 
-- Fetches both the single-chain and two-chain [AlphaFold](https://alphafold.ebi.ac.uk/) predictions
-- Runs pocket detection on each structure and highlights pockets that only appear in the homodimer
-- Scores every protein by how urgently it needs a drug (see [Gap Score](#the-gap-score))
-- Lets you dock small molecules into any pocket and view the result in an interactive 3D viewer
-- Analyzes the impact of point mutations on pocket geometry using [AlphaMissense](https://alphamissense.hegelab.org/) pathogenicity data
+For every protein you search, ProtPocket can:
 
-The homodimer structures come from the [March 2026 AlphaFold complex release](https://www.embl.org/news/science-technology/first-complexes-alphafold-database/) — the largest protein complex dataset ever assembled.
+* Fetch available AlphaFold monomer and homodimer structure predictions
+* Run fpocket-based pocket detection on both structures
+* Highlight pockets that appear or become more defined in the homodimer
+* Score proteins using structural confidence, approved-drug coverage, pathogen priority, and disorder-change signals
+* Suggest candidate molecules or fragments from ChEMBL
+* Run exploratory AutoDock Vina docking in selected pockets
+* Visualize structures, pockets, mutations, and docking poses in Mol*
+
+The predicted complex structures are based on the [2026 AlphaFold Database complex expansion](https://www.embl.org/news/science-technology/first-complexes-alphafold-database/), which includes large-scale homomeric and heteromeric protein complex predictions.
+
 
 ---
 
 ## Example: PEA15
 
-PEA15 is a small human protein that blocks cell death and is overexpressed in several cancers and type 2 diabetes. It has no approved drugs. As a single chain it is mostly unstructured; as a homodimer it becomes well-ordered, making the interface a clear target. It is a good example for this walkthrough because every ProtPocket feature is relevant to it.
+PEA15 is a small human adaptor protein involved in apoptosis and MAPK/ERK signaling, with links to cancer biology and type 2 diabetes. It has no approved drugs in ProtPocket's current ChEMBL-based lookup. In this walkthrough, ProtPocket uses PEA15 as an example where the predicted homodimer highlights interface-like pockets that are less apparent in the monomer, making it useful for exploring structure-based hypotheses.
 
 ### Search
 
@@ -75,7 +83,7 @@ Click **Analyze Pockets** on the PEA15 card. ProtPocket downloads both structure
 
 ![Pocket list showing interface pockets on the PEA15 homodimer](./public/img/pea15-comparison.png)
 
-A molecule that binds an interface pocket physically prevents the two chains from coming together, disrupting the protein's function at its source.
+A molecule that binds an interface pocket could, in principle, disrupt or weaken the chain-chain interaction. ProtPocket treats this as a computational hypothesis that would require experimental validation.
 
 **What the disorder delta is telling you:** PEA15's single chain has low structural confidence. The homodimer is much more ordered (+6.3). The residues that become ordered are the ones forming the dimer interface — precisely the ones lining the top-ranked pockets.
 
@@ -97,7 +105,7 @@ Behind the scenes ProtPocket converts the fragment into a 3D shape, prepares the
 
 ![Docked molecule visualized inside the PEA15 pocket in Mol*](./public/img/pea15-dock.png)
 
-**Reading the scores.** Each conformation is ranked by predicted binding affinity in kcal/mol. More negative = stronger predicted binding. Scores below −7 kcal/mol are considered good starting points for experimental follow-up. These are computational estimates — they guide which fragments are worth testing in the lab, not a guarantee of real-world binding.
+**Reading the scores.** Each conformation is ranked by predicted binding affinity in kcal/mol. More negative = stronger predicted binding. More negative scores generally indicate stronger predicted binding in the Vina scoring function. In ProtPocket, these scores are used for rough ranking only; they are not comparable across all proteins or proof of real binding. These are computational estimates — they guide which fragments are worth testing in the lab, not a guarantee of real-world binding.
 
 ### Mutation impact
 
@@ -117,7 +125,7 @@ Mutant structures are sourced from [RCSB PDB](https://www.rcsb.org/) when availa
 
 ## The Gap Score
 
-The Gap Score answers one question: *given everything known about this protein, how urgently does the world need a drug for it?*
+The Gap Score is a heuristic priority score for surfacing structurally confident, underexplored protein targets that may be worth follow-up.
 
 ```
 Gap Score = pLDDT_norm × undrugged_factor × WHO_multiplier + disorder_bonus
