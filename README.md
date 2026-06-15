@@ -77,7 +77,7 @@ Click the card to open the full detail page, which shows the monomer and homodim
 
 ### Pocket analysis
 
-Click **Analyze Pockets** on the PEA15 card. ProtPocket downloads both structure files and scans each one for surface pockets. This runs on the server — nothing is downloaded to your computer.
+ProtPocket downloads both structure files and scans each one for surface pockets. This runs on the server — nothing is downloaded to your computer.
 
 **Single-chain vs homodimer:** The lone PEA15 chain has only shallow, poorly defined pockets. When both chains are present, the structure locks into shape and new, deeper pockets appear at the interface — pockets that did not exist before. These are flagged as **interface pockets** and sorted to the top of the list.
 
