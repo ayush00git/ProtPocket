@@ -1,139 +1,166 @@
 # ProtPocket
 
-**From protein name to ranked drug binding sites — automated, in seconds.**
+**From protein search to ranked target insights — in seconds.**
 
-ProtPocket is an open-source computational drug discovery tool that takes a protein name, gene symbol, disease, or UniProt accession as input and returns a complete structural analysis: real-time complex data from AlphaFold, drug target prioritization via an original Gap Score algorithm, interactive 3D structure comparison, automated binding site detection using fpocket, and fragment molecule suggestions from ChEMBL — all in one browser-based workflow.
+ProtPocket is an open-source research prototype for exploring protein targets in one browser workflow. Search any protein by name, gene symbol, or accession number, and ProtPocket brings together [AlphaFold](https://alphafold.ebi.ac.uk/) structure predictions, monomer-vs-homodimer comparison, pocket detection, mutation impact scoring, molecule suggestions, exploratory docking, and interactive 3D visualization.
 
-It was built on top of the AlphaFold homodimer dataset released March 16, 2026 by EMBL-EBI, Google DeepMind, NVIDIA, and Seoul National University — the largest protein complex dataset ever assembled. ProtPocket is, to our knowledge, the first tool to make this dataset queryable by drug discovery priority through a live API pipeline.
+The goal is to help researchers move quickly from a protein query to testable structural hypotheses: Which pockets exist? Do new pockets appear in the homodimer? Are they near important mutations? Are there candidate molecules that could fit? How confident is the predicted structure?
+
+**Live:** [https://protpocket.ayushz.me](https://protpocket.ayushz.me)
 
 ---
 
 ## Table of Contents
 
-1. [The Problem](#the-problem)
-2. [How ProtPocket Works](#how-protpocket-works)
-3. [Technical Discovery: The AlphaFold Complex API](#technical-discovery)
-4. [The Gap Score](#the-gap-score)
-5. [Binding Site Detection](#binding-site-detection)
-6. [Data Sources](#data-sources)
-7. [Architecture](#architecture)
-8. [Installation](#installation)
-9. [API Reference](#api-reference)
-10. [Roadmap](#roadmap)
+1. [Why ProtPocket](#why-protpocket)
+2. [Example: PEA15](#example-pea15)
+
+   * [Search](#search)
+   * [Result card](#result-card)
+   * [Pocket analysis](#pocket-analysis)
+   * [Molecular docking](#molecular-docking)
+   * [Mutation impact](#mutation-impact)
+3. [The Gap Score](#the-gap-score)
+4. [Data Sources](#data-sources)
+5. [Installation](#installation)
 
 ---
 
-## The Problem
+## Why ProtPocket?
 
-Protein structures have been the foundation of rational drug design for decades. When researchers know the three-dimensional shape of a protein involved in disease, they can in principle design a molecule that fits into a cavity on its surface and disrupts its function. The challenge has always been bridging the gap between having a structure and knowing where and how to target it.
+Many proteins function as complexes, and in some cases two identical chains form a homodimer with pockets that are not visible in the single-chain structure. These interface pockets can be valuable starting points for drug-discovery research, but they are easy to miss when tools analyze only the monomer.
 
-The traditional workflow is brutally fragmented. A researcher investigating a tuberculosis protein today must query AlphaFold manually for the structure, visit UniProt separately for disease context, run ChEMBL queries independently for drug coverage, download structure files locally, run pocket detection software from a command line, and then consult fragment databases with another tool entirely. Each step requires a different interface, produces output in a different format, and demands familiarity with a different tool. Most researchers do not have access to expensive commercial suites — Schrödinger, MOE, Discovery Studio — that partially unify these workflows. Even those who do still face the deeper problem that most of these tools operate on monomer structures.
+ProtPocket compares AlphaFold monomer and homodimer predictions side by side, detects pockets in both structures, highlights candidate interface pockets, and connects them with mutation and docking context.
 
-A monomer is a single protein chain in isolation. A homodimer is two identical chains bound together. The biological reality is that most proteins only execute their functional role as dimers or larger complexes — the monomer form exists as a folding intermediate or transport state, not the active species inside the cell. The interface between two chains when they come together creates surface cavities — pockets — that do not exist in either chain alone. These interface pockets are among the most valuable drug targets in modern pharmacology, the basis of protein-protein interaction (PPI) inhibitor programs. Yet they are invisible to any tool that analyzes monomers only.
+For every protein you search, ProtPocket can:
 
-The March 2026 AlphaFold homodimer release changed the availability of complex structural data fundamentally. But it provided no tooling to query the data by drug discovery priority, no way to run pocket analysis on the new structures programmatically, and no connection to fragment databases. The dataset existed but was not actionable.
+* Fetch available AlphaFold monomer and homodimer structure predictions
+* Run fpocket-based pocket detection on both structures
+* Highlight pockets that appear or become more defined in the homodimer
+* Score proteins using structural confidence, approved-drug coverage, pathogen priority, and disorder-change signals
+* Suggest candidate molecules or fragments from ChEMBL
+* Run exploratory AutoDock Vina docking in selected pockets
+* Visualize structures, pockets, mutations, and docking poses in Mol*
+
+The predicted complex structures are based on the [2026 AlphaFold Database complex expansion](https://www.embl.org/news/science-technology/first-complexes-alphafold-database/), which includes large-scale homomeric and heteromeric protein complex predictions.
+
 
 ---
 
-## How ProtPocket Works
+## Example: PEA15
 
-### Query Classification and Multi-Database Retrieval
+PEA15 is a small human adaptor protein involved in apoptosis and MAPK/ERK signaling, with links to cancer biology and type 2 diabetes. It has no approved drugs in ProtPocket's current ChEMBL-based lookup. In this walkthrough, ProtPocket uses PEA15 as an example where the predicted homodimer highlights interface-like pockets that are less apparent in the monomer, making it useful for exploring structure-based hypotheses.
 
-When a researcher submits a query — whether it is a gene name like `TP53`, a disease term like `tuberculosis`, a UniProt accession like `P04637`, or an AlphaFold ID like `AF-0000000066503175` — ProtPocket first classifies the query type. A UniProt accession goes directly to AlphaFold without a search step. A gene name hits UniProt with a gene-exact filter. A disease term queries UniProt's disease annotation index. An AlphaFold ID bypasses both and resolves immediately.
+### Search
 
-For each matching protein, ProtPocket fires three concurrent requests: to AlphaFold for both monomer and homodimer predictions, to ChEMBL for approved drug coverage, and to UniProt for disease associations and organism context. These run in parallel via Go goroutines and merge before the response is returned.
+Go to [protpocket.ayushz.me](https://protpocket.ayushz.me) and type `PEA15` into the search bar.
 
-### Disorder Delta and Structural Comparison
+ProtPocket recognises this as a gene name and queries [UniProt](https://www.uniprot.org/), [AlphaFold](https://alphafold.ebi.ac.uk/), and [ChEMBL](https://www.ebi.ac.uk/chembl/) at the same time. Within a few seconds you see a list of matching proteins with their scores.
 
-For every protein, ProtPocket computes the disorder delta — the difference in average pLDDT confidence between the monomer and homodimer AlphaFold predictions. This single number captures the structural reveal: how much the protein gains in ordered, confident structure when it finds its binding partner. A disorder delta of +36 means the protein went from 50% structural confidence in isolation to 86% confidence in complex form — the functional shape was completely hidden in the monomer and emerged only in the dimer.
+![Searching for PEA15 on the platform](./public/img/pea15-search.png)
 
-The detail page renders both structures in the Mol* 3D viewer, colored by per-residue pLDDT confidence. Blue regions are predicted with high confidence; red and orange regions are disordered.
+### Result card
 
-<img src="./public/img/Q55DI5.png" alt="Q55DI5" />
+Each card shows three numbers at a glance:
 
-### Gap Score Ranking
+| Field | What it means |
+|-------|---------------|
+| **Confidence** | [AlphaFold](https://alphafold.ebi.ac.uk/)'s confidence in the predicted structure, averaged across the homodimer. Scores above 70 are considered reliable. |
+| **Disorder Δ** | How much more ordered the protein becomes when it dimerizes. A positive number means the functional shape only appears in the two-chain form. PEA15 shows +6.3 here. |
+| **Gap Score** | ProtPocket's priority score. Higher means more urgently undrugged. PEA15 scores high because it is well-predicted as a dimer, has zero approved drugs, and its structure is revealed by dimerization. |
 
-Every protein in the results is ranked by an original Gap Score that answers the question: how urgently does the world need a drug for this target? The score combines structural confidence, drug coverage from ChEMBL, WHO priority pathogen status, and the disorder delta bonus. Results are sorted descending — the most urgently undrugged, high-confidence target appears first. The undrugged targets dashboard provides a pre-ranked leaderboard of the highest Gap Score complexes across the 20 most studied species.
-<img src="./public/img/ranking.png" alt="Ranking" />
+![PEA15 result card showing confidence, disorder delta, and Gap Score](./public/img/pea15-card.png)
 
-### Binding Site Detection with fpocket
+Click the card to open the full detail page, which shows the monomer and homodimer structures side by side and all the key metrics in one view.
 
-When a researcher requests pocket analysis for a specific complex, ProtPocket runs fpocket on both the monomer and the homodimer structure files. fpocket identifies surface cavities using Voronoi tessellation and alpha sphere algorithms, returning each pocket with a druggability score, volume in cubic Ångströms, and the residues lining it.
-<img src="./public/img/comparison.png" alt="Comparison" />
+![PEA15 detail page — monomer vs homodimer comparison with metrics](./public/img/pea15-detail.png)
 
-By comparing the pocket lists from the monomer and dimer runs, ProtPocket identifies interface pockets — cavities that appear in the dimer but have no corresponding cavity in the monomer. These are pockets formed specifically by the coming together of two chains. They are cross-validated against the per-residue disorder delta: pockets lined by residues that gained structural confidence in the dimer are flagged as high-confidence interface pockets, the primary targets for PPI inhibitor programs.
-<img src="./public/img/pocket-analysis.png" alt="Pocket Analysis" />
+### Pocket analysis
 
-### Fragment Suggestion from ChEMBL
+ProtPocket downloads both structure files and scans each one for surface pockets. This runs on the server — nothing is downloaded to your computer.
 
-For each identified pocket, ProtPocket queries ChEMBL for small molecule fragments whose known binding pockets share geometric properties with the identified cavity — similar volume, similar hydrophobicity profile, similar charge distribution. The returned fragments are molecules that have been shown experimentally to bind structurally similar pockets in other proteins, providing a starting point for medicinal chemistry rather than an empty search space.
-<img src="./public/img/fragments.png" alt="Fragments" />
+**Single-chain vs homodimer:** The lone PEA15 chain has only shallow, poorly defined pockets. When both chains are present, the structure locks into shape and new, deeper pockets appear at the interface — pockets that did not exist before. These are flagged as **interface pockets** and sorted to the top of the list.
 
-### Live Structure Docking (AutoDock Vina)
+![Pocket list showing interface pockets on the PEA15 homodimer](./public/img/pea15-comparison.png)
 
-Once fragments are suggested, the researcher can validate their fit directly in the browser via an integrated docking service powered by **AutoDock Vina** and **Open Babel**. Upon selecting a ChEMBL fragment, the backend:
-1. Converts the 1D SMILES string into a 3D ligand conformation using Open Babel.
-2. Prepares the AlphaFold receptor by converting it to the required PDBQT format.
-3. Automatically sets the docking search space bounding box explicitely over the fpocket-derived center of the cavity.
-4. Executes Vina in the background to calculate binding affinities.
+A molecule that binds an interface pocket could, in principle, disrupt or weaken the chain-chain interaction. ProtPocket treats this as a computational hypothesis that would require experimental validation.
 
-The results are asynchronously streamed back to the frontend. Binding affinity scores (in kcal/mol) and docked poses are displayed in the leaderboard:
-<img src="./public/img/dock-lead.png" alt="Docking Leaderboard" />
+**What the disorder delta is telling you:** PEA15's single chain has low structural confidence. The homodimer is much more ordered (+6.3). The residues that become ordered are the ones forming the dimer interface — precisely the ones lining the top-ranked pockets.
 
-In parallel, the resulting 3D ligand structures are loaded directly into the Mol* viewer to visually represent how the molecule is embedded within the pocket:
-<img src="./public/img/dock.png" alt="Docking Viewer" />
+The full expanded view shows both structures side by side with pockets highlighted in green. Blue regions mean [AlphaFold](https://alphafold.ebi.ac.uk/) is confident about those positions; orange/red regions are less certain.
+
+![Side-by-side structure comparison with highlighted pockets](./public/img/pea15-pocket-analysis.png)
+
+### Molecular docking
+
+Once pocket analysis is done you can test whether a small molecule fits inside any pocket.
+
+**Select a pocket and molecule.** Choose the top-ranked interface pocket. You will see a list of fragment molecules whose shapes are a geometric match for this cavity, drawn from [ChEMBL](https://www.ebi.ac.uk/chembl/) — a public database of molecules with known biological activity. Select one and click **Run Docking**.
+
+![Docking panel showing fragment selection and leaderboard](./public/img/pea15-dock-lead.png)
+
+Behind the scenes ProtPocket converts the fragment into a 3D shape, prepares the PEA15 homodimer as the docking target, and runs [AutoDock Vina](https://vina.scripps.edu/) to test how and where the fragment fits inside the pocket. Results stream back to the browser automatically.
+
+**View the result.** The [Mol*](https://molstar.org/) 3D viewer loads the top-ranked pose sitting inside the PEA15 structure. You can rotate, zoom, and switch between alternative conformations using the leaderboard. A molecule sitting inside a blue (high-confidence) region is a trustworthy result.
+
+![Docked molecule visualized inside the PEA15 pocket in Mol*](./public/img/pea15-dock.png)
+
+**Reading the scores.** Each conformation is ranked by predicted binding affinity in kcal/mol. More negative = stronger predicted binding. More negative scores generally indicate stronger predicted binding in the Vina scoring function. In ProtPocket, these scores are used for rough ranking only; they are not comparable across all proteins or proof of real binding. These are computational estimates — they guide which fragments are worth testing in the lab, not a guarantee of real-world binding.
+
+### Mutation impact
+
+> **Coming soon** — implemented but not yet on the live site.
+
+Enter a mutation (e.g. `EGFR T790M`) and a UniProt accession to see how it affects pocket druggability. ProtPocket looks up the variant's pathogenicity in [AlphaMissense](https://alphamissense.hegelab.org/), compares wildtype and mutant pocket geometry via [fpocket](https://github.com/Discngine/fpocket), and produces a **Druggability Shift Score** (DSS) from −1 to +1:
+
+| DSS range | Classification |
+|-----------|----------------|
+| ≥ +0.15 | Pocket improved / created |
+| −0.15 to +0.15 | Pocket unchanged |
+| ≤ −0.15 | Pocket degraded / collapsed |
+
+Mutant structures are sourced from [RCSB PDB](https://www.rcsb.org/) when available; otherwise the wildtype backbone is used as an approximation and the score relies more on AlphaMissense pathogenicity.
 
 ---
 
 ## The Gap Score
 
-The Gap Score is ProtPocket's original drug target prioritization algorithm. It answers one question: given everything known about this protein complex, how urgently does research need a drug for it?
+The Gap Score is a heuristic priority score for surfacing structurally confident, underexplored protein targets that may be worth follow-up.
 
 ```
 Gap Score = pLDDT_norm × undrugged_factor × WHO_multiplier + disorder_bonus
 ```
 
-**`pLDDT_norm`** is the AlphaFold dimer confidence score normalized to 0–1. A structurally unreliable prediction should not drive expensive drug discovery programs — this term ensures only well-predicted targets rank highly.
+- **pLDDT_norm** — structural confidence, normalized 0–1. Unreliable predictions don't rank highly.
+- **undrugged_factor** — how uncovered the target is by existing drugs. Zero approved drugs = 1.0 (maximum urgency). More drugs = lower score.
+- **WHO_multiplier** — a 2× boost for proteins from pathogens on the WHO's critical antimicrobial resistance list.
+- **disorder_bonus** — a small addition when the protein's structure is significantly more ordered in the dimer than the monomer, rewarding the most scientifically novel entries in the dataset.
 
-**`undrugged_factor`** is `1 - (drug_count / max_drug_count_in_dataset)`. When no approved drug targets the protein, this equals 1.0. As drug coverage increases the factor approaches 0, pushing well-covered targets to the bottom. This is the gap the algorithm is named for.
-
-**`WHO_multiplier`** applies a hard 2.0× boost to proteins from WHO priority pathogens — the 19 bacteria and viruses the World Health Organization has designated as critical antimicrobial resistance threats. This reflects real-world clinical urgency.
-
-**`disorder_bonus`** adds `disorder_delta / 100` when the delta is positive. Proteins that undergo dramatic structural transformation in complex form represent the most scientifically novel entries in the March 2026 dataset. The bonus rewards them proportionally.
-
----
-
-## Binding Site Detection
-
-ProtPocket's pocket analysis pipeline operates on monomer and homodimer structure files and identifies druggable cavities through three stages.
-
-In the first stage, fpocket is invoked as a subprocess on both the monomer and dimer cif files. fpocket uses a rolling sphere algorithm — a probe sphere of variable radius is rolled across the molecular surface, and positions where the sphere is significantly surrounded by protein atoms are identified as potential pockets. Each pocket is scored for druggability based on its volume, shape, and chemical environment.
-
-In the second stage, the monomer and dimer pocket lists are compared geometrically. A pocket in the dimer that has no corresponding cavity within threshold distance in the monomer is identified as an interface pocket — it was created by the structural change induced by dimerization. Interface pockets are the primary targets of PPI inhibitor programs because a molecule binding there disrupts the protein-protein interaction itself rather than blocking a conventional enzymatic active site.
-
-In the third stage, each interface pocket is cross-referenced with per-residue pLDDT data from AlphaFold's confidence JSON files. Pockets whose lining residues gained the most structural confidence in the dimer — those with per-residue delta above threshold — are flagged as high-confidence interface pockets and sorted to the top of the ranked list.
-
-The Mol* viewer on the detail page highlights the identified pocket residues directly on the structure, allowing the researcher to visually inspect the cavity geometry and its relationship to the structural reveal.
+Results on the homepage are sorted by Gap Score descending — the most urgently undrugged, well-predicted complex appears first.
 
 ---
 
 ## Data Sources
 
-**AlphaFold Database** (EMBL-EBI and Google DeepMind) provides all protein structure predictions. ProtPocket queries the search endpoint live for every request, recovering both monomer and homodimer predictions in a single call. 
+| Source | Role |
+|--------|------|
+| **[AlphaFold Database](https://alphafold.ebi.ac.uk/)** ([EMBL-EBI](https://www.ebi.ac.uk/) / [Google DeepMind](https://deepmind.google/)) | Single-chain and homodimer structure predictions |
+| **[UniProt](https://www.uniprot.org/)** | Gene names, organism, disease associations |
+| **[ChEMBL](https://www.ebi.ac.uk/chembl/)** ([EMBL-EBI](https://www.ebi.ac.uk/)) | Approved drug counts and fragment suggestions |
+| **[AlphaMissense](https://alphamissense.hegelab.org/)** ([Google DeepMind](https://deepmind.google/)) | Pathogenicity scores for 216M single amino-acid variants |
+| **[RCSB PDB](https://www.rcsb.org/)** | Experimental mutant structures for mutation analysis |
+| **[fpocket](https://github.com/Discngine/fpocket)** | Pocket detection, runs locally on the server |
+| **[AutoDock Vina](https://vina.scripps.edu/)** | Docking engine, runs locally on the server |
+| **[Open Babel](https://openbabel.org/)** | Molecular format conversions |
+| **[WHO Priority Pathogen List (2024)](https://www.who.int/publications/i/item/9789240093461)** | Powers the 2× Gap Score multiplier for critical pathogens |
 
-**UniProt** provides protein identity — gene names, organism, taxonomy ID, disease associations, and reviewed annotation status. Every protein in ProtPocket has a UniProt accession as its canonical identifier, and all cross-database lookups originate from it.
+ProtPocket does not store or redistribute [AlphaFold](https://alphafold.ebi.ac.uk/) structure files. All structure data is linked directly to [EMBL-EBI](https://www.ebi.ac.uk/)'s servers.
 
-**ChEMBL** (EMBL-EBI) provides drug-target association data. ProtPocket queries ChEMBL for approved drugs at Phase 4 clinical status and above targeting each protein. The resulting drug count feeds directly into the undrugged factor of the Gap Score. ChEMBL is also queried for fragment molecule suggestions matched to identified pocket geometries.
+---
 
-**WHO Priority Pathogen List** (2024 edition) is hardcoded as a lookup table keyed by NCBI taxonomy ID. The list covers 24 bacterial and fungal pathogens designated as critical antimicrobial resistance threats and drives the 2× multiplier in the Gap Score.
+## Installation
 
-**fpocket** runs locally as a subprocess. No external API is involved — structure files are downloaded, converted, analyzed, and the temporary files are deleted. fpocket is MIT licensed and freely available.
-
-**AutoDock Vina** runs locally as a subprocess to process ligand binding simulations, calculating affinity values and generating 3D molecular poses explicitly mapped into the target pockets.
-
-**Open Babel** handles all molecular format conversions between stages — CIF to PDB for fpocket input, SMILES to 3D for ligand preparation, and format interconversion for fragment structures.
-
-ProtPocket does not store or redistribute AlphaFold structure files. All structure data is linked directly to EMBL-EBI's servers. All primary data sources are freely available under open licenses compatible with academic and commercial use.
+See [INSTALLATION.md](./INSTALLATION.md) for self-hosting instructions.
 
 ---
 
@@ -144,7 +171,3 @@ If you use ProtPocket in research, please cite the AlphaFold Database and the Ma
 > Fleming J. et al. AlphaFold Protein Structure Database and 3D-Beacons: New Data and Capabilities. *Journal of Molecular Biology* (2025).
 
 > EMBL-EBI, Google DeepMind, NVIDIA, Seoul National University. Millions of protein complexes added to AlphaFold Database. March 16, 2026. https://www.embl.org/news/science-technology/first-complexes-alphafold-database/
-
-The technical discovery of the AlphaFold complex API pipeline is documented in [COMPLEX.md](./COMPLEX.md) and may be cited independently.
-
----
